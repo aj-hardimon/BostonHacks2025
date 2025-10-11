@@ -1,3 +1,59 @@
+## Testing CSFLE with /api/seed
+
+To test that Client-Side Field Level Encryption (CSFLE) is working:
+
+1. **Set up your secrets in `bostonhacks2025/.env.local`:**
+
+  ```env
+  MONGODB_URI=your-mongodb-uri
+  MONGODB_DB_NAME=budgeting_app
+  CSFLE_LOCAL_MASTER_KEY=... # 96-byte base64 string
+  ```
+
+2. **Start the dev server from the project root:**
+
+  ```bash
+  npm run dev
+  ```
+
+3. **Seed and test via browser or curl:**
+
+  - Open: [http://localhost:3000/api/seed](http://localhost:3000/api/seed)
+  - Or run:
+
+    ```bash
+    curl -s http://localhost:3000/api/seed | jq
+    ```
+
+  You should see a response like:
+
+  ```json
+  {
+    "ok": true,
+    "doc": {
+     "userId": "USER-12345",
+     "monthlyIncome": 5000,
+     "categories": {
+      "rent": 2000,
+      "food": 400,
+      "bills": 250,
+      "savings": 800,
+      "investments": 350,
+      "wants": 1200
+     },
+     "createdAt": "...",
+     "updatedAt": "..."
+    }
+  }
+  ```
+
+4. **Verify encryption in Atlas/Compass:**
+
+  - In the `budgets` collection, the fields `userId`, `monthlyIncome`, and all `categories.*` should appear as ciphertext (Binary data).
+  - The API response will show these fields as plaintext (decrypted by CSFLE driver).
+
+5. **No Edge runtime warnings:**
+  - The `/api/seed` route enforces Node.js runtime for CSFLE compatibility.
 # AI Budgeting App - Backend Documentation
 
 ## Overview
@@ -176,11 +232,31 @@ npm install --save-dev @types/node
 
 Create `.env.local` file (copy from `.env.local.example`):
 
+
 ```env
 MONGODB_URI=mongodb://localhost:27017
 MONGODB_DB_NAME=budgeting_app
+CSFLE_LOCAL_MASTER_KEY=<96-byte-base64>
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
+
+### CSFLE (Client-Side Field Level Encryption)
+
+Install dependencies:
+```bash
+npm i mongodb mongodb-client-encryption
+```
+
+Generate a 96-byte base64 key for CSFLE_LOCAL_MASTER_KEY:
+```bash
+openssl rand -base64 96 | tr -d '\n'
+```
+
+- Never commit `.env.local`!
+- Key vault: `encryption.__keyVault` (unique index on keyAltNames)
+- DEK: keyAltNames: `["pii-key"]`
+- Only `budgets` collection is encrypted (see `src/app/backend/encryption.ts`).
+- For testing, use `/api/seed` (Node runtime enforced, returns plaintext JSON if CSFLE works).
 
 ### 3. Get API Keys
 

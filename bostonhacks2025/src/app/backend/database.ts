@@ -3,6 +3,7 @@
  */
 
 import { MongoClient, Db, Collection } from 'mongodb';
+import { getEncryptedMongoClient } from './encryption';
 
 let client: MongoClient | null = null;
 let db: Db | null = null;
@@ -47,24 +48,17 @@ export async function connectToDatabase(): Promise<Db> {
     return db;
   }
 
-  const uri = process.env.MONGODB_URI;
-  if (!uri) {
-    throw new Error('MONGODB_URI environment variable is not defined');
-  }
-
   const dbName = process.env.MONGODB_DB_NAME || 'budgeting_app';
 
   try {
-    client = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 5000, // 5 seconds timeout
-    });
-    await client.connect();
+    client = await getEncryptedMongoClient(dbName);
     db = client.db(dbName);
-    console.log(`Connected to MongoDB database: ${dbName}`);
+    // Ensure index on userId for budgets (deterministic encryption supports equality + index)
+    await db.collection('budgets').createIndex({ userId: 1 });
+    console.log(`Connected to MongoDB database (CSFLE): ${dbName}`);
     return db;
   } catch (error) {
-    console.error('Failed to connect to MongoDB:', error);
-    console.error('Connection URI (sanitized):', uri.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@'));
+    console.error('Failed to connect to MongoDB (CSFLE):', error);
     throw error;
   }
 }
