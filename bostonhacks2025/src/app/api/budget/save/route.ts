@@ -46,7 +46,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Save budget error:', error);
     return NextResponse.json(
-      { error: 'Failed to save budget' },
+      { 
+        error: 'Failed to save budget',
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }

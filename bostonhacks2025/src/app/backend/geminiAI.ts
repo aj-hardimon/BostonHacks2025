@@ -33,7 +33,7 @@ export async function getBudgetRecommendations(
   currentBudget?: BudgetInput
 ): Promise<string> {
   const ai = initializeGemini();
-  const model = ai.getGenerativeModel({ model: 'gemini-pro' });
+  const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   let prompt = `You are a financial advisor helping someone create a budget. 
 Monthly Income: $${monthlyIncome}
@@ -79,7 +79,7 @@ export async function getWantsSubcategoryRecommendations(
   userPreferences?: string[]
 ): Promise<string> {
   const ai = initializeGemini();
-  const model = ai.getGenerativeModel({ model: 'gemini-pro' });
+  const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   let prompt = `You are helping someone organize their discretionary spending budget.
 They have allocated $${wantsAmount.toFixed(2)} per month for "Wants" (entertainment, hobbies, etc.).
@@ -111,7 +111,7 @@ The percentages should add up to 100% or less.`;
  */
 export async function analyzeBudget(budgetResult: BudgetResult): Promise<string> {
   const ai = initializeGemini();
-  const model = ai.getGenerativeModel({ model: 'gemini-pro' });
+  const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   const budgetSummary = formatBudgetSummary(budgetResult);
 
@@ -141,7 +141,7 @@ export async function askBudgetQuestion(
   budgetContext?: BudgetResult
 ): Promise<string> {
   const ai = initializeGemini();
-  const model = ai.getGenerativeModel({ model: 'gemini-pro' });
+  const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   let prompt = `You are a helpful financial advisor assistant. Answer the following question about budgeting:
 

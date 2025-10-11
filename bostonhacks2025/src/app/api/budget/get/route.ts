@@ -31,7 +31,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Get budget error:', error);
     return NextResponse.json(
-      { error: 'Failed to retrieve budget' },
+      { 
+        error: 'Failed to retrieve budget',
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }

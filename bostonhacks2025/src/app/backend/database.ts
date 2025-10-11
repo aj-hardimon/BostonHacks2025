@@ -52,14 +52,19 @@ export async function connectToDatabase(): Promise<Db> {
     throw new Error('MONGODB_URI environment variable is not defined');
   }
 
+  const dbName = process.env.MONGODB_DB_NAME || 'budgeting_app';
+
   try {
-    client = new MongoClient(uri);
+    client = new MongoClient(uri, {
+      serverSelectionTimeoutMS: 5000, // 5 seconds timeout
+    });
     await client.connect();
-    db = client.db(process.env.MONGODB_DB_NAME || 'budgeting_app');
-    console.log('Connected to MongoDB');
+    db = client.db(dbName);
+    console.log(`Connected to MongoDB database: ${dbName}`);
     return db;
   } catch (error) {
     console.error('Failed to connect to MongoDB:', error);
+    console.error('Connection URI (sanitized):', uri.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@'));
     throw error;
   }
 }
