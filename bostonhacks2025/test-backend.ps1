@@ -122,6 +122,27 @@ try {
     Write-Host "Error: $_" -ForegroundColor Red
 }
 
+# 6. Test AI Category Question
+Write-Host ""
+Write-Host "----------------------------------------"
+Write-Host ""
+Write-Host "6. Testing AI Category Question..." -ForegroundColor Green
+$categoryQuestionBody = @{
+    category = "Food"
+    question = "How can I save money on groceries?"
+    categoryBudget = 750
+    location = "Boston, MA"
+} | ConvertTo-Json -Depth 10
+
+try {
+    $response = Invoke-RestMethod -Uri "http://localhost:3000/api/ai/category-question" -Method Post -ContentType "application/json" -Body $categoryQuestionBody
+    
+    Write-Host "Success! AI Category Question" -ForegroundColor Green
+    Write-Host ($response | ConvertTo-Json -Depth 10) -ForegroundColor White
+} catch {
+    Write-Host "Error: $_" -ForegroundColor Red
+}
+
 Write-Host ""
 Write-Host "============================" -ForegroundColor Cyan
 Write-Host "Testing Complete!" -ForegroundColor Cyan

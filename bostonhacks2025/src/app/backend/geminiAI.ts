@@ -158,3 +158,59 @@ Question: ${question}`;
   const response = await result.response;
   return response.text();
 }
+
+/**
+ * Answer category-specific budget questions with detailed advice
+ */
+export async function askCategoryQuestion(
+  category: string,
+  question: string,
+  categoryBudget?: number,
+  location?: string
+): Promise<string> {
+  const ai = initializeGemini();
+  const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+  let prompt = `You are a knowledgeable financial advisor specializing in helping people stay within their budget for specific spending categories.
+
+Category: ${category}`;
+
+  if (categoryBudget !== undefined) {
+    prompt += `\nMonthly Budget for ${category}: $${categoryBudget.toFixed(2)}`;
+  }
+
+  if (location) {
+    prompt += `\nLocation: ${location}`;
+  }
+
+  prompt += `\n\nUser Question: ${question}
+
+Please provide detailed, actionable advice for staying under budget in this category.
+
+IMPORTANT GUIDELINES:
+1. If this is a location-dependent category (rent, food, groceries, dining, utilities, etc.) and a location is provided:
+   - Give region-specific advice tailored to that area
+   - Suggest general strategies and resources (e.g., "Look for discount grocery stores in your area", "Search for farmer's markets near you")
+   - Recommend types of stores or services to research (e.g., "budget-friendly grocery chains", "local meal prep services")
+   - Suggest search terms or recipe types they can look up (e.g., "budget meals under $5 per serving", "meal prep ideas for your budget")
+   
+2. DO NOT provide:
+   - Exact prices or dollar amounts
+   - Specific website links or URLs
+   - Current pricing data (as it may be outdated)
+   
+3. DO provide:
+   - General price ranges or percentage savings they might expect
+   - Categories of stores/services to explore
+   - Budget-friendly strategies and tips
+   - Recipe ideas or meal planning suggestions (without exact costs)
+   - Local resource types to investigate (libraries, community centers, etc.)
+
+4. Be practical, encouraging, and specific with actionable steps they can take.
+
+Provide your advice in a clear, organized manner with specific suggestions they can research and implement.`;
+
+  const result = await model.generateContent(prompt);
+  const response = await result.response;
+  return response.text();
+}
