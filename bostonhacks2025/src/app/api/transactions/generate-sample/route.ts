@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get user's budget to get the budget ID
+    // Get user's budget to get the budget ID and monthly income
     const userBudget = await getBudget(userId);
     if (!userBudget) {
       return NextResponse.json(
@@ -40,9 +40,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate sample transactions from Nessie API
-    console.log(`Generating ${limit} sample transactions for user ${userId}...`);
-    const sampleTransactions = await generateSampleTransactionsFromAllCustomers(limit);
+    // Generate sample transactions from Nessie API with budget context
+    console.log(`Generating ${limit} sample transactions for user ${userId} with monthly income $${userBudget.monthlyIncome}...`);
+    const sampleTransactions = await generateSampleTransactionsFromAllCustomers(limit, userBudget.monthlyIncome);
 
     if (!sampleTransactions || sampleTransactions.length === 0) {
       return NextResponse.json(

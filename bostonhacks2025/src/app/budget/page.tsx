@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import StreakDisplay from "@/components/StreakDisplay";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 type Budget = {
   _id?: string;
@@ -21,6 +22,17 @@ type MonthSummary = {
   categorySpending: Record<string, number>;
 };
 
+// Category color mapping for pie charts
+const CATEGORY_COLORS: Record<string, string> = {
+  rent: '#3b82f6',      // blue
+  food: '#10b981',      // green
+  bills: '#f59e0b',     // amber
+  savings: '#8b5cf6',   // purple
+  investments: '#06b6d4', // cyan
+  wants: '#ec4899',     // pink
+  default: '#6b7280'    // gray
+};
+
 export default function BudgetHome() {
   const router = useRouter();
   const [budget, setBudget] = useState<Budget | null>(null);
@@ -28,6 +40,7 @@ export default function BudgetHome() {
   const [loading, setLoading] = useState(false);
   const [searchName, setSearchName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [showCharts, setShowCharts] = useState(false);
 
   useEffect(() => {
     // Try to get budget from sessionStorage (set by create-budget)
@@ -223,6 +236,107 @@ export default function BudgetHome() {
                   );
                 })}
               </div>
+            </div>
+
+            {/* Pie Charts Section - Collapsible */}
+            <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+              <button
+                onClick={() => setShowCharts(!showCharts)}
+                className="w-full flex justify-between items-center text-xl font-semibold text-slate-800 hover:text-blue-600 transition-colors"
+              >
+                <span>Budget Visualizations</span>
+                <span className="text-2xl">{showCharts ? '▼' : '▶'}</span>
+              </button>
+              
+              {showCharts && (
+                <div className="mt-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Budget Allocation Pie Chart */}
+                    <div className="border border-slate-200 rounded-lg p-4">
+                      <h4 className="text-lg font-semibold text-slate-800 mb-4 text-center">
+                        Budget Allocation
+                      </h4>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                          <Pie
+                            data={Object.entries(budget.categories).map(([category, percentage]) => ({
+                              name: category.charAt(0).toUpperCase() + category.slice(1),
+                              value: Number(((budget.monthlyIncome * percentage) / 100).toFixed(2)),
+                              percentage: percentage
+                            }))}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ name, percentage }) => `${name}: ${percentage}%`}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            {Object.entries(budget.categories).map((entry, index) => (
+                              <Cell 
+                                key={`cell-${index}`} 
+                                fill={CATEGORY_COLORS[entry[0]] || CATEGORY_COLORS.default}
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Actual Spending Pie Chart */}
+                    <div className="border border-slate-200 rounded-lg p-4">
+                      <h4 className="text-lg font-semibold text-slate-800 mb-4 text-center">
+                        Actual Spending This Month
+                      </h4>
+                      {monthSummary && monthSummary.categorySpending && Object.keys(monthSummary.categorySpending).length > 0 ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                          <PieChart>
+                            <Pie
+                              data={Object.entries(monthSummary.categorySpending).map(([category, amount]) => {
+                                const totalSpent = Object.values(monthSummary.categorySpending).reduce((sum, val) => sum + val, 0);
+                                const percentage = totalSpent > 0 
+                                  ? ((amount / totalSpent) * 100).toFixed(1)
+                                  : '0';
+                                return {
+                                  name: category.charAt(0).toUpperCase() + category.slice(1),
+                                  value: Number(amount.toFixed(2)),
+                                  percentage: Number(percentage),
+                                  displayPercentage: percentage
+                                };
+                              })}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              label={({ name, displayPercentage }) => `${name}: ${displayPercentage}%`}
+                              outerRadius={80}
+                              fill="#82ca9d"
+                              dataKey="value"
+                            >
+                              {Object.entries(monthSummary.categorySpending).map((entry, index) => (
+                                <Cell 
+                                  key={`cell-${index}`} 
+                                  fill={CATEGORY_COLORS[entry[0]] || CATEGORY_COLORS.default}
+                                />
+                              ))}
+                            </Pie>
+                            <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="flex items-center justify-center h-[300px] text-slate-500">
+                          <div className="text-center">
+                            <p className="text-lg mb-2">No spending data yet</p>
+                            <p className="text-sm">Add transactions to see your spending breakdown</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Wants Subcategories */}

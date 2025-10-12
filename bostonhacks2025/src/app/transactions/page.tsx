@@ -46,6 +46,7 @@ export default function TransactionsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [generatingTransactions, setGeneratingTransactions] = useState(false);
 
   // Load budget and transactions
   useEffect(() => {
@@ -229,6 +230,57 @@ export default function TransactionsPage() {
     }
   };
 
+  const handleGenerateSampleTransactions = async () => {
+    if (!budget) {
+      setError("No budget found");
+      return;
+    }
+
+    if (!confirm("This will generate 25 sample transactions based on your budget. Continue?")) {
+      return;
+    }
+
+    setGeneratingTransactions(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await fetch("/api/transactions/generate-sample", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: budget.userId,
+          limit: 25, // Generate 25 transactions
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setError(errorData.error || `Failed to generate transactions (${response.status})`);
+        setGeneratingTransactions(false);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSuccess(`Successfully generated ${data.count} sample transactions!`);
+        // Reload transactions to show the new ones
+        await loadTransactions(budget.userId);
+        
+        // Clear success message after 5 seconds
+        setTimeout(() => setSuccess(""), 5000);
+      } else {
+        setError(data.error || "Failed to generate sample transactions");
+      }
+    } catch (err) {
+      console.error("Error generating sample transactions:", err);
+      setError("Failed to generate sample transactions: " + (err instanceof Error ? err.message : "Unknown error"));
+    } finally {
+      setGeneratingTransactions(false);
+    }
+  };
+
   const getCategoryOptions = () => {
     if (!budget) return [];
     return Object.keys(budget.categories).filter(
@@ -336,12 +388,20 @@ export default function TransactionsPage() {
         )}
 
         {/* Add Transaction Button */}
-        <div className="mb-6">
+        <div className="mb-6 flex gap-4">
           <button
             onClick={() => setShowAddForm(!showAddForm)}
             className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
           >
             {showAddForm ? "Cancel" : "+ Add Transaction"}
+          </button>
+          
+          <button
+            onClick={handleGenerateSampleTransactions}
+            disabled={generatingTransactions}
+            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            {generatingTransactions ? "Generating..." : "🎲 Generate Sample Transactions"}
           </button>
         </div>
 

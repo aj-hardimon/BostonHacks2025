@@ -257,8 +257,10 @@ export async function generateSampleTransactions(
 
 /**
  * Generate realistic example transactions (fallback when Nessie API has no data)
+ * @param limit Number of transactions to generate
+ * @param monthlyIncome Optional monthly income to scale transaction amounts appropriately
  */
-export function generateExampleTransactions(limit: number = 20): FormattedTransaction[] {
+export function generateExampleTransactions(limit: number = 20, monthlyIncome?: number): FormattedTransaction[] {
   const exampleMerchants = [
     // Food
     { name: 'Whole Foods', category: 'food', description: 'Grocery shopping', minAmount: 40, maxAmount: 150 },
@@ -303,18 +305,30 @@ export function generateExampleTransactions(limit: number = 20): FormattedTransa
 
   const transactions: FormattedTransaction[] = [];
   const now = new Date();
+  
+  // Scale amounts based on monthly income (if provided)
+  const incomeScale = monthlyIncome ? monthlyIncome / 5000 : 1; // Base scale on $5000 income
+  const cappedScale = Math.min(Math.max(incomeScale, 0.5), 3); // Cap between 0.5x and 3x
 
   for (let i = 0; i < limit; i++) {
     // Pick a random merchant
     const merchant = exampleMerchants[Math.floor(Math.random() * exampleMerchants.length)];
     
-    // Generate random amount within merchant's range
-    const amount = Number((Math.random() * (merchant.maxAmount - merchant.minAmount) + merchant.minAmount).toFixed(2));
+    // Generate random amount within merchant's range, scaled by income
+    const baseAmount = Math.random() * (merchant.maxAmount - merchant.minAmount) + merchant.minAmount;
+    const scaledAmount = baseAmount * cappedScale;
+    const amount = Number(scaledAmount.toFixed(2));
     
-    // Generate random date within last 30 days
+    // Spread dates over last 30 days with more variance
+    // Use a mix of recent and older transactions
     const daysAgo = Math.floor(Math.random() * 30);
+    const hoursOffset = Math.floor(Math.random() * 24); // Add random hours for more spread
+    const minutesOffset = Math.floor(Math.random() * 60); // Add random minutes
+    
     const date = new Date(now);
     date.setDate(date.getDate() - daysAgo);
+    date.setHours(date.getHours() - hoursOffset);
+    date.setMinutes(date.getMinutes() - minutesOffset);
     
     transactions.push({
       merchantName: merchant.name,
@@ -331,14 +345,17 @@ export function generateExampleTransactions(limit: number = 20): FormattedTransa
 
 /**
  * Get all purchases from multiple customers (for more variety)
+ * @param limit Number of transactions to generate
+ * @param monthlyIncome Optional monthly income to scale transaction amounts appropriately
  */
 export async function generateSampleTransactionsFromAllCustomers(
-  limit: number = 20
+  limit: number = 20,
+  monthlyIncome?: number
 ): Promise<FormattedTransaction[]> {
   try {
     if (!NESSIE_API_KEY) {
       console.warn('NESSIE_API_KEY is not configured, using example transactions');
-      return generateExampleTransactions(limit);
+      return generateExampleTransactions(limit, monthlyIncome);
     }
 
     console.log('Fetching customers from Nessie API...');
@@ -346,12 +363,13 @@ export async function generateSampleTransactionsFromAllCustomers(
     
     if (!customers || customers.length === 0) {
       console.warn('No customers found in Nessie API, using example transactions');
-      return generateExampleTransactions(limit);
+      return generateExampleTransactions(limit, monthlyIncome);
     }
 
     console.log(`Found ${customers.length} customers, fetching purchases...`);
 
     const allTransactions: FormattedTransaction[] = [];
+    const now = new Date();
 
     // Get purchases from first 5 customers to get variety
     const customersToQuery = customers.slice(0, Math.min(5, customers.length));
@@ -377,9 +395,16 @@ export async function generateSampleTransactionsFromAllCustomers(
             merchantName = purchase.description;
           }
 
+          // Spread transaction dates over last 30 days
+          const daysAgo = Math.floor(Math.random() * 30);
+          const hoursOffset = Math.floor(Math.random() * 24);
+          const date = new Date(now);
+          date.setDate(date.getDate() - daysAgo);
+          date.setHours(date.getHours() - hoursOffset);
+
           allTransactions.push({
             merchantName,
-            date: new Date(purchase.transaction_date),
+            date: date, // Use spread date instead of original purchase date
             amount: purchase.amount,
             category,
             description: purchase.description || merchantName,
@@ -396,7 +421,7 @@ export async function generateSampleTransactionsFromAllCustomers(
     // If no transactions found from Nessie, use examples
     if (allTransactions.length === 0) {
       console.warn('No transactions found from Nessie API, using example transactions');
-      return generateExampleTransactions(limit);
+      return generateExampleTransactions(limit, monthlyIncome);
     }
 
     // Shuffle and limit
@@ -405,6 +430,6 @@ export async function generateSampleTransactionsFromAllCustomers(
   } catch (error) {
     console.error('Error generating sample transactions from Nessie API:', error);
     console.warn('Falling back to example transactions');
-    return generateExampleTransactions(limit);
+    return generateExampleTransactions(limit, monthlyIncome);
   }
 }
