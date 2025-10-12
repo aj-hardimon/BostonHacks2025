@@ -3,7 +3,7 @@
 //   npx tsx scripts/seedAndVerify.ts
 
 import 'dotenv/config';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import { saveBudget, getBudget } from '../src/app/backend/database';
 
 async function main() {
@@ -24,19 +24,35 @@ async function main() {
 
   // Save and read back using CSFLE-enabled DAO
   await saveBudget(sample as any);
-  const doc = await getBudget('USER-TEST-123');
+  const doc = await getBudget(sample.userId);
   console.log('\nPlaintext from app client:', doc);
 
-  // Read raw from DB (no autoEncryption)
+  // Read raw from DB (no autoEncryption) using _id
   const uri = process.env.MONGODB_URI!;
   const dbName = process.env.MONGODB_DB_NAME || 'budgeting_app';
   const client = new MongoClient(uri);
   await client.connect();
-  const raw = await client
-    .db(dbName)
-    .collection('budgets')
-    .findOne({ userId: doc?.userId });
-  console.log('\nRaw from DB:', raw);
+  let raw = null;
+  if (doc && doc._id) {
+    const _id = typeof doc._id === 'string' ? new ObjectId(doc._id) : doc._id;
+    raw = await client
+      .db(dbName)
+      .collection('budgets')
+      .findOne({ _id });
+    console.log('\nRaw from DB (BSON):', raw);
+    // Fetch again via app DAO by _id (plaintext)
+    // (Assumes you add a getBudgetById function, or you can just print doc again)
+    // For now, print doc again for clarity
+    console.log('\nPlaintext from app client (by _id):', doc);
+    // Fetch and print the doc again from MongoDB at the end
+    const finalDoc = await client
+      .db(dbName)
+      .collection('budgets')
+      .findOne({ _id });
+    console.log('\nFinal fetch from MongoDB:', finalDoc);
+  } else {
+    console.log('\nRaw from DB (BSON):', raw);
+  }
 
   // Aggregation to print BSON types
   const agg = [

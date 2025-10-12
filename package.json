@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "mongodb": "^6.20.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.37.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.9"
+  }
+}

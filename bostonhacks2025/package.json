@@ -5,9 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start",
-  "mongocryptd": "mongocryptd --port 27020 --logpath ./mongocryptd.log --pidfilepath ./mongocryptd.pid",
-  "verify:csfle": "export DOTENV_CONFIG_PATH=.env.local && npx tsx scripts/seedAndVerify.ts"
+    "start": "next start"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

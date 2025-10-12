@@ -134,6 +134,17 @@ export default function CreateBudgetWizard() {
 
       const json = await res.json();
       if (!res.ok) {
+        // If backend returns validation errors, set calc so errors are shown in review step
+        if (json.details) {
+          setCalc({
+            monthlyIncome: Number(monthlyIncome),
+            totalAllocated: 0,
+            unallocated: 0,
+            categories: [],
+            isValid: false,
+            errors: json.details,
+          });
+        }
         setError(json.error || "Calculation failed");
         return null;
       }
@@ -187,6 +198,16 @@ export default function CreateBudgetWizard() {
         </div>
 
         {error && <div className="mb-4 text-red-600">{error}</div>}
+        {step === "review" && calc && !calc.isValid && calc.errors && (
+          <div className="mb-4 text-red-600">
+            <strong>Validation errors:</strong>
+            <ul className="list-disc ml-6">
+              {calc.errors.map((err, idx) => (
+                <li key={idx}>{err}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {step === "income" && (
           <div>
