@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useBudget } from "@/context/BudgetContext";
 
@@ -79,13 +79,27 @@ export default function CreateBudgetWizard() {
   }
 
   function updateCategoryAmount(key: keyof CategoryAmounts, amount: number) {
-    setAmounts((a) => ({ ...a, [key]: amount }));
+    setAmounts((a) => ({ ...a, [key]: Number.isFinite(Number(amount)) ? Number(amount) : 0 }));
     // update percentage if income exists
     if (monthlyIncome && Number(monthlyIncome) > 0) {
       const pct = (Number(amount) / Number(monthlyIncome)) * 100;
       setCategories((c) => ({ ...c, [key]: Number(pct.toFixed(2)) }));
     }
   }
+
+  // Ensure amounts are recalculated whenever income or the category percentages change
+  useEffect(() => {
+    if (monthlyIncome !== "" && Number(monthlyIncome) > 0) {
+      setAmounts(() => {
+        const next: any = {};
+        (Object.keys(categories) as (keyof Categories)[]).forEach((k) => {
+          const pct = Number((categories as any)[k]) || 0;
+          next[k] = Number(((pct / 100) * Number(monthlyIncome)).toFixed(2));
+        });
+        return next as CategoryAmounts;
+      });
+    }
+  }, [monthlyIncome, categories]);
 
   function addWantsSub() {
     setWantsSub((s) => [...s, { name: "", percentage: 0 }]);
