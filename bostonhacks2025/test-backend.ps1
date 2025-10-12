@@ -2,6 +2,9 @@ Write-Host "Testing Budget Backend APIs" -ForegroundColor Cyan
 Write-Host "============================" -ForegroundColor Cyan
 Write-Host ""
 
+# Base URL configuration
+$baseUrl = "http://localhost:3000"
+
 # 1. Test Budget Calculation
 Write-Host "1. Testing Budget Calculation..." -ForegroundColor Green
 $calculateBody = @{
@@ -22,7 +25,7 @@ $calculateBody = @{
 } | ConvertTo-Json -Depth 10
 
 try {
-    $response = Invoke-RestMethod -Uri "http://localhost:3000/api/budget/calculate" -Method Post -ContentType "application/json" -Body $calculateBody
+    $response = Invoke-RestMethod -Uri "$baseUrl/api/budget/calculate" -Method Post -ContentType "application/json" -Body $calculateBody
     
     Write-Host "Success! Budget Calculation" -ForegroundColor Green
     Write-Host ($response | ConvertTo-Json -Depth 10) -ForegroundColor White
@@ -50,7 +53,7 @@ $saveBody = @{
 } | ConvertTo-Json -Depth 10
 
 try {
-    $response = Invoke-RestMethod -Uri "http://localhost:3000/api/budget/save" -Method Post -ContentType "application/json" -Body $saveBody
+    $response = Invoke-RestMethod -Uri "$baseUrl/api/budget/save" -Method Post -ContentType "application/json" -Body $saveBody
     
     Write-Host "Success! Save Budget" -ForegroundColor Green
     Write-Host ($response | ConvertTo-Json -Depth 10) -ForegroundColor White
@@ -65,7 +68,7 @@ Write-Host ""
 # 3. Test Get Budget
 Write-Host "3. Testing Get Budget..." -ForegroundColor Green
 try {
-    $response = Invoke-RestMethod -Uri "http://localhost:3000/api/budget/get?userId=test-user-123" -Method Get
+    $response = Invoke-RestMethod -Uri "$baseUrl/api/budget/get?userId=test-user-123" -Method Get
     
     Write-Host "Success! Get Budget" -ForegroundColor Green
     Write-Host ($response | ConvertTo-Json -Depth 10) -ForegroundColor White
@@ -85,7 +88,7 @@ $aiBody = @{
 } | ConvertTo-Json -Depth 10
 
 try {
-    $response = Invoke-RestMethod -Uri "http://localhost:3000/api/ai/recommendations" -Method Post -ContentType "application/json" -Body $aiBody
+    $response = Invoke-RestMethod -Uri "$baseUrl/api/ai/recommendations" -Method Post -ContentType "application/json" -Body $aiBody
     
     Write-Host "Success! AI Recommendations" -ForegroundColor Green
     Write-Host ($response | ConvertTo-Json -Depth 10) -ForegroundColor White
@@ -114,7 +117,7 @@ $analysisBody = @{
 } | ConvertTo-Json -Depth 10
 
 try {
-    $response = Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -ContentType "application/json" -Body $analysisBody
+    $response = Invoke-RestMethod -Uri "$baseUrl/api/ai/analyze" -Method Post -ContentType "application/json" -Body $analysisBody
     
     Write-Host "Success! AI Analysis" -ForegroundColor Green
     Write-Host ($response | ConvertTo-Json -Depth 10) -ForegroundColor White
@@ -135,10 +138,48 @@ $categoryQuestionBody = @{
 } | ConvertTo-Json -Depth 10
 
 try {
-    $response = Invoke-RestMethod -Uri "http://localhost:3000/api/ai/category-question" -Method Post -ContentType "application/json" -Body $categoryQuestionBody
+    $response = Invoke-RestMethod -Uri "$baseUrl/api/ai/category-question" -Method Post -ContentType "application/json" -Body $categoryQuestionBody
     
     Write-Host "Success! AI Category Question" -ForegroundColor Green
     Write-Host ($response | ConvertTo-Json -Depth 10) -ForegroundColor White
+} catch {
+    Write-Host "Error: $_" -ForegroundColor Red
+}
+
+Write-Host ""
+Write-Host "----------------------------------------"
+Write-Host ""
+
+# 7. Test Generate Sample Transactions
+Write-Host "7. Testing Generate Sample Transactions..." -ForegroundColor Green
+$generateTransactionsBody = @{
+    userId = "test-user-123"
+    limit = 15
+} | ConvertTo-Json -Depth 10
+
+try {
+    $response = Invoke-RestMethod -Uri "$baseUrl/api/transactions/generate-sample" -Method Post -ContentType "application/json" -Body $generateTransactionsBody
+    
+    Write-Host "Success! Generated Sample Transactions" -ForegroundColor Green
+    Write-Host ($response | ConvertTo-Json -Depth 10) -ForegroundColor White
+} catch {
+    Write-Host "Error: $_" -ForegroundColor Red
+}
+
+Write-Host ""
+Write-Host "----------------------------------------"
+Write-Host ""
+
+# 8. Test Spending Analysis
+Write-Host "8. Testing Spending Analysis..." -ForegroundColor Green
+try {
+    $response = Invoke-RestMethod -Uri "$baseUrl/api/transactions/analyze?userId=test-user-123" -Method Get
+    
+    Write-Host "Success! Spending Analysis" -ForegroundColor Green
+    Write-Host ($response | ConvertTo-Json -Depth 10) -ForegroundColor White
+    Write-Host ""
+    Write-Host "Formatted Analysis:" -ForegroundColor Cyan
+    Write-Host $response.formattedAnalysis -ForegroundColor White
 } catch {
     Write-Host "Error: $_" -ForegroundColor Red
 }

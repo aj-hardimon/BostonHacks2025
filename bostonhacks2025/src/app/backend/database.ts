@@ -55,8 +55,13 @@ export async function connectToDatabase(): Promise<Db> {
   try {
     client = await getEncryptedMongoClient(dbName);
     db = client.db(dbName);
-    // Ensure index on userId for budgets (deterministic encryption supports equality + index)
+    
+    // Ensure indexes
     await db.collection('budgets').createIndex({ userId: 1 });
+    await db.collection('transactions').createIndex({ userId: 1 });
+    await db.collection('transactions').createIndex({ userId: 1, date: -1 });
+    await db.collection('transactions').createIndex({ budgetId: 1 });
+    
     console.log(`Connected to MongoDB database (CSFLE): ${dbName}`);
     return db;
   } catch (error) {
@@ -159,6 +164,41 @@ export async function saveTransaction(
     _id: result.insertedId.toString(),
     createdAt: new Date(),
   };
+}
+
+/**
+ * Save multiple transactions at once (for sample data generation)
+ */
+export async function saveTransactionsBulk(
+  userId: string,
+  budgetId: string,
+  transactions: Array<{
+    category: string;
+    amount: number;
+    description: string;
+    merchantName: string;
+    date: Date;
+  }>
+): Promise<BudgetTransaction[]> {
+  const collection = await getTransactionsCollection();
+  
+  const docs = transactions.map(t => ({
+    userId,
+    budgetId,
+    category: t.category,
+    subcategory: t.merchantName,
+    amount: t.amount,
+    description: t.description,
+    date: t.date,
+    createdAt: new Date(),
+  }));
+  
+  const result = await collection.insertMany(docs);
+  
+  return docs.map((doc, index) => ({
+    ...doc,
+    _id: result.insertedIds[index].toString(),
+  }));
 }
 
 /**
