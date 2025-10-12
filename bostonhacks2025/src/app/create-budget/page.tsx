@@ -260,15 +260,36 @@ export default function CreateBudgetWizard() {
 
         {step === "wants" && (
           <div>
-            <p className="text-sm text-slate-700 mb-4">Break down your Wants percentage into subcategories (optional)</p>
+            <p className="text-sm text-slate-700 mb-4">Break down your Wants percentage into subcategories (each value is % of the Wants category)</p>
             <div className="space-y-3">
-              {wantsSub.map((w, i) => (
-                <div key={i} className="flex gap-2 items-center">
-                  <input className="flex-1 border rounded px-2 py-1 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-sky-500" placeholder="Subcategory name" value={w.name} onChange={(e) => updateWantsSub(i, "name", e.target.value)} />
-                  <input className="w-24 border rounded px-2 py-1 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-sky-500" type="number" value={w.percentage} onChange={(e) => updateWantsSub(i, "percentage", Number(e.target.value))} />
-                  <button className="px-2 py-1 border rounded" onClick={() => removeWantsSub(i)}>Remove</button>
-                </div>
-              ))}
+              <div className="grid grid-cols-12 gap-2 font-semibold text-sm mb-2 text-slate-800">
+                <div className="col-span-6">Subcategory</div>
+                <div className="col-span-2 text-right">% of Wants</div>
+                <div className="col-span-2 text-right">% of Income</div>
+                <div className="col-span-2 text-right">$</div>
+              </div>
+
+              {wantsSub.map((w, i) => {
+                const wantsPct = Number(categories.wants) || 0; // e.g. 20
+                const subPctOfWants = Number(w.percentage) || 0; // e.g. 20 means 20% of wants
+                const subPctOfIncome = (wantsPct * subPctOfWants) / 100; // percent of total income
+                const amount = monthlyIncome && Number(monthlyIncome) > 0 ? Number(((Number(monthlyIncome) * subPctOfIncome) / 100).toFixed(2)) : 0;
+                return (
+                  <div key={i} className="grid grid-cols-12 gap-2 items-center">
+                    <div className="col-span-6">
+                      <input className="w-full border rounded px-2 py-1 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-sky-500" placeholder="Subcategory name" value={w.name} onChange={(e) => updateWantsSub(i, "name", e.target.value)} />
+                    </div>
+                    <div className="col-span-2">
+                      <input className="w-full text-right border rounded px-2 py-1" type="number" value={w.percentage} onChange={(e) => updateWantsSub(i, "percentage", Number(e.target.value))} />
+                    </div>
+                    <div className="col-span-2 text-right">{subPctOfIncome.toFixed(2)}%</div>
+                    <div className="col-span-2 text-right">${amount.toFixed(2)}</div>
+                    <div className="col-span-12 text-right mt-1">
+                      <button className="px-2 py-1 border rounded" onClick={() => removeWantsSub(i)}>Remove</button>
+                    </div>
+                  </div>
+                );
+              })}
 
               <div>
                 <button className="px-3 py-1 rounded border" onClick={addWantsSub}>Add subcategory</button>
