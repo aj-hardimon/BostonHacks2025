@@ -29,6 +29,12 @@ export interface UserBudget {
     amount?: number;
     percentage?: number;
   }[];
+  streak?: {
+    currentStreak: number;
+    longestStreak: number;
+    lastChecked: Date;
+    monthlyResetDate: Date;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,6 +49,7 @@ export interface BudgetTransaction {
   description: string;
   date: Date;
   createdAt: Date;
+  monthPeriod?: string; // Format: "2025-01" to track which month
 }
 
 /**
@@ -256,6 +263,146 @@ export async function deleteTransaction(transactionId: string): Promise<boolean>
   const collection = await getTransactionsCollection();
   const result = await collection.deleteOne({ _id: transactionId as any });
   return result.deletedCount > 0;
+}
+
+/**
+ * Check and update budget streak
+ * Returns updated streak data
+ */
+export async function checkAndUpdateStreak(userId: string): Promise<{
+  currentStreak: number;
+  longestStreak: number;
+  lastChecked: Date;
+  monthlyResetDate: Date;
+}> {
+  const budget = await getBudget(userId);
+  if (!budget) {
+    throw new Error('Budget not found');
+  }
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  // Initialize streak if it doesn't exist
+  if (!budget.streak) {
+    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    budget.streak = {
+      currentStreak: 0,
+      longestStreak: 0,
+      lastChecked: today,
+      monthlyResetDate: firstOfMonth,
+    };
+  }
+
+  const lastChecked = new Date(budget.streak.lastChecked);
+  const lastCheckedDate = new Date(lastChecked.getFullYear(), lastChecked.getMonth(), lastChecked.getDate());
+  const monthlyResetDate = new Date(budget.streak.monthlyResetDate);
+  
+  // Check if we need to reset for new month
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  if (currentMonthStart > monthlyResetDate) {
+    // New month - reset monthly budget tracking
+    budget.streak.monthlyResetDate = currentMonthStart;
+  }
+
+  // Check if this is a new day
+  if (today > lastCheckedDate) {
+    // Get yesterday's date
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Check if user stayed within budget yesterday
+    const wasWithinBudget = await checkDailyBudgetAdherence(userId, yesterday);
+
+    if (wasWithinBudget) {
+      // Increment streak
+      budget.streak.currentStreak += 1;
+      if (budget.streak.currentStreak > budget.streak.longestStreak) {
+        budget.streak.longestStreak = budget.streak.currentStreak;
+      }
+    } else if (lastCheckedDate < yesterday) {
+      // Missed a day - reset streak
+      budget.streak.currentStreak = 0;
+    }
+
+    budget.streak.lastChecked = today;
+    
+    // Save updated streak
+    const collection = await getBudgetsCollection();
+    await collection.updateOne(
+      { userId },
+      { 
+        $set: { 
+          streak: budget.streak,
+          updatedAt: now 
+        } 
+      }
+    );
+  }
+
+  return budget.streak;
+}
+
+/**
+ * Check if spending was within budget for a specific day
+ */
+async function checkDailyBudgetAdherence(userId: string, date: Date): Promise<boolean> {
+  const budget = await getBudget(userId);
+  if (!budget) return false;
+
+  // Get start and end of the day
+  const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+  const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
+
+  // Get transactions for that day
+  const transactions = await getTransactions(userId, startOfDay, endOfDay);
+
+  // Calculate daily budget (monthly income / 30 days)
+  const dailyBudget = budget.monthlyIncome / 30;
+
+  // Calculate total spent that day
+  const totalSpent = transactions.reduce((sum, t) => sum + t.amount, 0);
+
+  // User is within budget if they spent less than daily budget
+  return totalSpent <= dailyBudget;
+}
+
+/**
+ * Get current month transactions with spending summary
+ */
+export async function getCurrentMonthSummary(userId: string): Promise<{
+  totalSpent: number;
+  budgetRemaining: number;
+  percentUsed: number;
+  categorySpending: Record<string, number>;
+}> {
+  const budget = await getBudget(userId);
+  if (!budget) {
+    throw new Error('Budget not found');
+  }
+
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+  const transactions = await getTransactions(userId, startOfMonth, endOfMonth);
+
+  const totalSpent = transactions.reduce((sum, t) => sum + t.amount, 0);
+  const budgetRemaining = budget.monthlyIncome - totalSpent;
+  const percentUsed = budget.monthlyIncome > 0 ? (totalSpent / budget.monthlyIncome) * 100 : 0;
+
+  const categorySpending: Record<string, number> = {};
+  transactions.forEach(t => {
+    const cat = t.category.toLowerCase();
+    categorySpending[cat] = (categorySpending[cat] || 0) + t.amount;
+  });
+
+  return {
+    totalSpent,
+    budgetRemaining,
+    percentUsed,
+    categorySpending,
+  };
 }
 
 /**
