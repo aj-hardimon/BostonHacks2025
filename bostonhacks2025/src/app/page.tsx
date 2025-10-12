@@ -21,7 +21,9 @@ export default function Home() {
         <section className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Link href="/create-budget" className="w-full py-3 rounded btn-primary font-medium text-center">Create a new budget</Link>
           <Link href="/budget" className="w-full py-3 rounded border border-slate-300 text-muted hover:bg-slate-50 text-center">Get Budget</Link>
-          <button className="w-full py-3 rounded border border-slate-300 text-muted">Rewards & leaderboard</button>
+          <Link href="/ai-assistant" className="w-full py-3 rounded bg-indigo-600 text-white hover:bg-indigo-700 font-medium text-center flex items-center justify-center gap-2">
+            <span>🤖</span> AI Assistant
+          </Link>
         </section>
 
         <section>

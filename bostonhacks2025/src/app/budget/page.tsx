@@ -271,10 +271,10 @@ export default function BudgetHome() {
                   Weekly Progress
                 </button>
                 <button 
-                  onClick={() => router.push('/transactions')}
-                  className="px-4 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-medium"
+                  onClick={() => router.push('/ai-assistant')}
+                  className="px-4 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium flex items-center justify-center gap-2"
                 >
-                  Add Transaction
+                  <span>🤖</span> AI Assistant
                 </button>
               </div>
             </div>

@@ -78,12 +78,29 @@ An intelligent budgeting application that helps users create, track, and analyze
   - Three display sizes (small/medium/large)
   - Displayed prominently on budget page
 
-### 🤖 **AI Features** (Backend Ready - Not Yet Integrated)
-- Budget recommendations with Google Gemini AI
-- Location-aware category advice
-- Budget analysis and insights
-- Subcategory suggestions
-- *(API endpoints exist but not yet called from frontend)*
+### 🤖 **AI Assistant** ✨
+- **Interactive AI Chat** - Powered by Google Gemini AI
+  - Real-time budget advice
+  - Four specialized modes:
+    - 💬 **Chat Mode** - Ask any budgeting questions
+    - 📊 **Analyze Mode** - Comprehensive budget analysis
+      - Overall budget assessment
+      - Strengths and weaknesses
+      - Actionable recommendations
+      - Financial warnings and concerns
+    - 💡 **Recommendations Mode** - Personalized budget tips
+      - AI-suggested category percentages
+      - Custom advice based on your goals
+      - Income-appropriate allocations
+      - Review and improve existing budget
+    - 🎯 **Wants Subcategories** - Smart spending breakdown
+      - Subcategory suggestions for discretionary spending
+      - Interest-based recommendations
+      - Percentage allocations for hobbies, entertainment, etc.
+  - Chat history with timestamps
+  - Current budget display
+  - Accessible from main page, budget page, and create-budget wizard
+  - Beautiful gradient UI with conversation bubbles
 
 ### 💾 **Data Persistence**
 - MongoDB integration for all user data
@@ -107,16 +124,17 @@ An intelligent budgeting application that helps users create, track, and analyze
 
 ## 📱 Application Pages
 
-1. **Landing Page** (`/`) - Home page with "Get Budget" button
+1. **Landing Page** (`/`) - Home page with quick access to all features
 2. **Budget Page** (`/budget`) 
-   - Budget search
-   - Budget display with streak
+   - Budget search by name
+   - Budget display with streak counter
    - Monthly summary
-   - Action buttons (Edit, Transactions, Progress, Add Transaction)
-3. **Create Budget** (`/create-budget`) - Multi-step budget creation wizard
+   - Action buttons (Edit, Transactions, Weekly Progress, AI Assistant)
+3. **Create Budget** (`/create-budget`) - Multi-step budget creation wizard with AI recommendations
 4. **Edit Budget** (`/edit-budget`) - Budget editing interface
-5. **Transactions** (`/transactions`) - Add and view all transactions
-6. **Weekly Progress** (`/weekly-progress`) - Week-by-week spending analysis
+5. **Transactions** (`/transactions`) - Add, view, and delete transactions
+6. **Weekly Progress** (`/weekly-progress`) - Week-by-week spending analysis with navigation
+7. **AI Assistant** (`/ai-assistant`) - ✨ **NEW** Interactive AI chat for budget advice
 
 ## 🔧 Tech Stack
 
@@ -180,6 +198,12 @@ Open [http://localhost:3000](http://localhost:3000) to see your app.
 
 ### 📚 Comprehensive Guides
 
+- **[AI Assistant Guide](./AI_ASSISTANT_GUIDE.md)** ✨ **NEW**
+  - Complete AI features documentation
+  - Usage examples and tips
+  - Four AI modes explained
+  - Best practices for getting AI advice
+
 - **[Frontend Integration Guide](./README_FRONTEND.md)** ⭐ **START HERE**
   - Complete API reference with code examples
   - React hooks and components
@@ -212,19 +236,35 @@ Open [http://localhost:3000](http://localhost:3000) to see your app.
 ### Budget Management
 - `POST /api/budget/calculate` - Calculate budget (validation only)
 - `POST /api/budget/save` - Save budget to database
-- `GET /api/budget/get?userId={id}` - Retrieve user budget
+- `POST /api/budget/update` - Update existing budget
+- `GET /api/budget/get?userId={id}` - Retrieve user budget by userId
+- `GET /api/budget/get-by-name?name={name}` - Search budget by name
+- `GET /api/budget/month-summary` - Get current month spending summary
 
 ### Transaction Management
 - `POST /api/transactions/add` - Add single transaction
-- `GET /api/transactions/history` - Get transaction history
+- `GET /api/transactions/history` - Get transaction history (with date filtering)
+- `DELETE /api/transactions/delete` - Delete a transaction
 - `POST /api/transactions/generate-sample` - Generate example transactions
 - `GET /api/transactions/analyze` - Analyze spending vs budget
 
-### AI Features
-- `POST /api/ai/recommendations` - Get budget recommendations
-- `POST /api/ai/analyze` - AI budget analysis
-- `POST /api/ai/wants-subcategories` - Subcategory suggestions
-- `POST /api/ai/category-question` - Category-specific advice
+### AI Features ✨ **ACTIVE**
+- `POST /api/ai/recommendations` - Get personalized budget recommendations
+  - Analyzes monthly income and financial goals
+  - Provides category-specific percentage suggestions
+  - Reviews and improves existing budgets
+- `POST /api/ai/analyze` - Comprehensive budget analysis
+  - Overall budget assessment
+  - Identifies strengths and weaknesses
+  - Actionable improvement recommendations
+  - Financial warnings and concerns
+- `POST /api/ai/wants-subcategories` - Smart subcategory suggestions
+  - Breaks down discretionary spending
+  - Interest-based recommendations
+  - Percentage allocations for entertainment, hobbies, etc.
+
+### Gamification
+- `GET /api/streak/check` - Check and update user's budget streak
 
 ## Project Structure
 

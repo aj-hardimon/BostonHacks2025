@@ -287,6 +287,16 @@ export default function CreateBudgetWizard() {
 
         {step === "categories" && (
           <div>
+            <div className="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+              <p className="text-sm text-indigo-900 mb-2">💡 Need help allocating your budget?</p>
+              <button
+                onClick={() => router.push('/ai-assistant')}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium text-sm flex items-center gap-2"
+              >
+                <span>🤖</span> Get AI Budget Recommendations
+              </button>
+            </div>
+            
             <p className="text-sm text-slate-700 mb-4">Allocate percentages for each category. Total should be ≤ 100%.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {(["rent", "food", "bills", "savings", "investments", "wants"] as (keyof Categories)[]).map((k) => (
