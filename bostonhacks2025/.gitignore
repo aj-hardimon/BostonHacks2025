@@ -41,3 +41,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Ignore mongocryptd logs and pid
+mongocryptd.log*
+mongocryptd.pid
