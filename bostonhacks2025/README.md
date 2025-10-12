@@ -81,6 +81,8 @@ An intelligent budgeting application that helps users create, track, and analyze
 ### 🤖 **AI Assistant** ✨
 - **Interactive AI Chat** - Powered by Google Gemini AI
   - Real-time budget advice
+  - **Rich Markdown Formatting** - Tables, headings, lists, bold text, code blocks
+  - Beautiful typography with custom styling
   - Four specialized modes:
     - 💬 **Chat Mode** - Ask any budgeting questions
     - 📊 **Analyze Mode** - Comprehensive budget analysis
@@ -142,7 +144,8 @@ An intelligent budgeting application that helps users create, track, and analyze
 - **Language:** TypeScript
 - **Database:** MongoDB Atlas
 - **AI:** Google Gemini (gemini-2.5-flash)
-- **Styling:** Tailwind CSS
+- **Styling:** Tailwind CSS + @tailwindcss/typography
+- **Markdown Rendering:** react-markdown + remark-gfm
 - **State Management:** React Context API
 - **Runtime:** Node.js v23.8.0
 - **Dev Server:** Turbopack

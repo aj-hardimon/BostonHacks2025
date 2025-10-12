@@ -9,13 +9,16 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@tailwindcss/typography": "^0.5.19",
     "dotenv": "^17.2.3",
     "mongodb": "^6.20.0",
     "mongodb-client-encryption": "^6.5.0",
     "mongosh": "^2.5.8",
     "next": "15.5.4",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

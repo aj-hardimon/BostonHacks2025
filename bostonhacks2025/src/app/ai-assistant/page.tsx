@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useBudget, Budget } from '@/context/BudgetContext';
 import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 type Message = {
   id: number;
@@ -302,11 +304,19 @@ export default function AIAssistantPage() {
                     msg.type === 'user'
                       ? 'bg-indigo-600 text-white'
                       : msg.type === 'ai'
-                      ? 'bg-slate-100 text-slate-900'
+                      ? 'bg-slate-100'
                       : 'bg-blue-50 text-blue-900 border border-blue-200'
                   }`}
                 >
-                  <div className="whitespace-pre-wrap text-sm">{msg.content}</div>
+                  <div className={`text-sm ${msg.type === 'ai' ? 'prose prose-sm max-w-none' : ''} ${msg.type === 'user' ? 'text-white' : ''}`}>
+                    {msg.type === 'ai' ? (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.content}
+                      </ReactMarkdown>
+                    ) : (
+                      msg.content
+                    )}
+                  </div>
                   <div
                     className={`text-xs mt-2 ${
                       msg.type === 'user' ? 'text-indigo-200' : 'text-slate-500'
