@@ -1280,4 +1280,4 @@ export default function DashboardPage() {
 
 ---
 
-**🎉 You're all set!** Start building your budget app frontend with these examples.
+**🎉 You're all set!** Start building your budget app frontend with these examples.     
