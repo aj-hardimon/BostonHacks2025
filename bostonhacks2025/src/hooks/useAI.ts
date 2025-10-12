@@ -106,11 +106,14 @@ export function useAIAnalysis() {
         body: JSON.stringify({ budgetResult })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to get AI analysis');
+        const errorMsg = data.details || data.error || 'Failed to get AI analysis';
+        const debugInfo = data.hasApiKey !== undefined ? `(API Key present: ${data.hasApiKey})` : '';
+        throw new Error(`${errorMsg} ${debugInfo}`);
       }
 
-      const data = await response.json();
       setAnalysis(data.analysis);
       return data.analysis;
     } catch (err) {

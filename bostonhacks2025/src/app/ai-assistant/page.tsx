@@ -124,7 +124,14 @@ export default function AIAssistantPage() {
       }
 
       const data = await response.json();
-      addMessage('ai', data.analysis);
+      console.log('AI Response data:', data);
+      
+      if (data.analysis) {
+        addMessage('ai', data.analysis);
+      } else {
+        console.error('No analysis in response:', data);
+        addMessage('system', '❌ Received empty response from AI. Please try again.');
+      }
     } catch (error) {
       console.error('Error analyzing budget:', error);
       addMessage('system', '❌ Failed to analyze budget. Please try again.');

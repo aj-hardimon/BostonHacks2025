@@ -23,8 +23,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ analysis }, { status: 200 });
   } catch (error) {
     console.error('AI analysis error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error details:', errorMessage);
     return NextResponse.json(
-      { error: 'Failed to analyze budget' },
+      { 
+        error: 'Failed to analyze budget',
+        details: errorMessage,
+        hasApiKey: !!process.env.GEMINI_API_KEY 
+      },
       { status: 500 }
     );
   }
