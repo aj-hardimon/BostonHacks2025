@@ -29,9 +29,19 @@ type CreateBudgetOpts = Partial<Pick<Budget, 'userId' | 'name' | 'notes'>> & {
   wantsSubcategories?: WantsSub[];
 };
 
+type UpdateBudgetOpts = {
+  userId: string;
+  name?: string;
+  monthlyIncome: number;
+  categories: Categories;
+  wantsSubcategories?: WantsSub[];
+  notes?: string;
+};
+
 type BudgetContextType = {
   budgets: Budget[];
   createBudget: (opts: CreateBudgetOpts) => Promise<{ budget: Budget; savedToBackend: boolean }>;
+  updateBudget: (opts: UpdateBudgetOpts) => Promise<{ budget: Budget; savedToBackend: boolean }>;
   getLatest: () => Budget | undefined;
   reset: () => void;
 };
@@ -125,6 +135,54 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     return { budget: b, savedToBackend: false };
   }
 
+  async function updateBudget(opts: UpdateBudgetOpts) {
+    const b: Budget = {
+      id: undefined,
+      userId: opts.userId,
+      name: opts.name,
+      monthlyIncome: opts.monthlyIncome,
+      categories: opts.categories,
+      wantsSubcategories: opts.wantsSubcategories || [],
+      notes: opts.notes,
+    };
+
+    // Update in local state
+    setBudgets((s) => {
+      const existing = s.find((x) => x.userId === opts.userId);
+      if (existing) {
+        return [b, ...s.filter((x) => x.userId !== opts.userId)];
+      }
+      return [b, ...s];
+    });
+
+    // Update in backend
+    try {
+      const updateRes = await fetch("/api/budget/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: opts.userId,
+          name: opts.name,
+          monthlyIncome: opts.monthlyIncome,
+          categories: opts.categories,
+          wantsSubcategories: opts.wantsSubcategories || [],
+          notes: opts.notes,
+        }),
+      });
+
+      if (updateRes.ok) {
+        const saved = await updateRes.json();
+        const reconciled: Budget = { ...b, id: saved._id || saved.id };
+        setBudgets((s) => [reconciled, ...s.filter((x) => x.userId !== opts.userId)]);
+        return { budget: reconciled, savedToBackend: true };
+      }
+    } catch (e) {
+      // ignore network error; fallback to local-only
+    }
+
+    return { budget: b, savedToBackend: false };
+  }
+
   function getLatest() {
     return budgets.length ? budgets[0] : undefined;
   }
@@ -133,7 +191,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     setBudgets([]);
   }
 
-  const ctx: BudgetContextType = { budgets, createBudget, getLatest, reset };
+  const ctx: BudgetContextType = { budgets, createBudget, updateBudget, getLatest, reset };
   return <BudgetContext.Provider value={ctx}>{children}</BudgetContext.Provider>;
 }
 

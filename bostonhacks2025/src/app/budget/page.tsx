@@ -185,7 +185,10 @@ export default function BudgetHome() {
             <div className="bg-white shadow-md rounded-lg p-6">
               <h3 className="text-xl font-semibold text-slate-800 mb-4">Budget Actions</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <button className="px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">
+                <button 
+                  onClick={() => router.push('/edit-budget')}
+                  className="px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
+                >
                   Edit Budget
                 </button>
                 <button className="px-4 py-3 border border-slate-300 rounded-md hover:bg-slate-50 font-medium">

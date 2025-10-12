@@ -345,7 +345,7 @@ export default function CreateBudgetWizard() {
                       <input className="w-full border rounded px-2 py-1 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-sky-500" placeholder="Subcategory name" value={w.name} onChange={(e) => updateWantsSub(i, "name", e.target.value)} />
                     </div>
                     <div className="col-span-2">
-                      <input className="w-full text-right border rounded px-2 py-1" type="number" value={w.percentage} onChange={(e) => updateWantsSub(i, "percentage", Number(e.target.value))} />
+                      <input className="w-full text-right border rounded px-2 py-1 text-slate-900" type="number" value={w.percentage} onChange={(e) => updateWantsSub(i, "percentage", Number(e.target.value))} />
                     </div>
                     <div className="col-span-2 text-right">{subPctOfIncome.toFixed(2)}%</div>
                     <div className="col-span-2 text-right">${amount.toFixed(2)}</div>
