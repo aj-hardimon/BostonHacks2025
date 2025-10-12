@@ -20,8 +20,8 @@ export default function Home() {
 
         <section className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Link href="/create-budget" className="w-full py-3 rounded btn-primary font-medium text-center">Create a new budget</Link>
-          <button className="w-full py-3 rounded border border-slate-300 text-muted">View weekly progress</button>
-          <button className="w-full py-3 rounded border border-slate-300 text-muted">Rewards & leaderboard</button>
+          <Link href="/get-budget" className="w-full py-3 rounded btn-grey font-medium text-center">Get budget</Link>
+          <button className="w-full py-3 rounded btn-grey">Rewards & leaderboard</button>
         </section>
 
         <section>

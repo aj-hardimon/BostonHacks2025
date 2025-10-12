@@ -270,9 +270,9 @@ export default function CreateBudgetWizard() {
             </div>
 
             <div className="mt-6 flex justify-between">
-              <button className="px-4 py-2 rounded border" onClick={() => setStep("income")}>Back</button>
+              <button className="btn-outline" onClick={() => setStep("income")}>Back</button>
               <div>
-                <button className="px-4 py-2 rounded border mr-2" onClick={() => setStep("wants")}>Skip wants</button>
+                <button className="btn-outline mr-2" onClick={() => setStep("wants")}>Skip wants</button>
                 <button className="px-4 py-2 rounded bg-sky-600 text-white" onClick={() => setStep("wants")}>Next</button>
               </div>
             </div>
@@ -306,21 +306,21 @@ export default function CreateBudgetWizard() {
                     <div className="col-span-2 text-right">{subPctOfIncome.toFixed(2)}%</div>
                     <div className="col-span-2 text-right">${amount.toFixed(2)}</div>
                     <div className="col-span-12 text-right mt-1">
-                      <button className="px-2 py-1 border rounded" onClick={() => removeWantsSub(i)}>Remove</button>
+                      <button className="btn-muted" onClick={() => removeWantsSub(i)}>Remove</button>
                     </div>
                   </div>
                 );
               })}
 
               <div>
-                <button className="px-3 py-1 rounded border" onClick={addWantsSub}>Add subcategory</button>
+                <button className="btn-outline" onClick={addWantsSub}>Add subcategory</button>
               </div>
             </div>
 
             <div className="mt-6 flex justify-between">
-              <button className="px-4 py-2 rounded border" onClick={() => setStep("categories")}>Back</button>
+              <button className="btn-outline" onClick={() => setStep("categories")}>Back</button>
               <div>
-                <button className="px-4 py-2 rounded border mr-2" onClick={async () => { await fetchCalculation(); setStep("review"); }}>Preview</button>
+                <button className="btn-outline mr-2" onClick={async () => { await fetchCalculation(); setStep("review"); }}>Preview</button>
                 <button className="px-4 py-2 rounded bg-sky-600 text-white" onClick={async () => { await fetchCalculation(); setStep("review"); }}>Review</button>
               </div>
             </div>
@@ -366,9 +366,9 @@ export default function CreateBudgetWizard() {
             </div>
 
             <div className="flex justify-between">
-              <button className="px-4 py-2 rounded border" onClick={() => setStep("wants")}>Back</button>
+              <button className="btn-outline" onClick={() => setStep("wants")}>Back</button>
               <div>
-                <button className="px-4 py-2 rounded border mr-2" onClick={() => { setCalc(null); setStep("categories"); }}>Edit allocations</button>
+                <button className="btn-outline mr-2" onClick={() => { setCalc(null); setStep("categories"); }}>Edit allocations</button>
                 <button className="px-4 py-2 bg-sky-600 text-white rounded" onClick={handleCreate} disabled={loading}>{loading ? 'Saving...' : 'Create budget'}</button>
               </div>
             </div>

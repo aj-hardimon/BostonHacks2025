@@ -49,3 +49,92 @@ body {
 .text-muted {
   color: var(--muted);
 }
+
+/* Secondary / outline buttons used across the app (Edit, Back, Skip, Preview) */
+.btn-outline {
+  background-color: transparent;
+  color: var(--foreground);
+  border: 1px solid rgba(11, 35, 64, 0.12);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+}
+
+/* Muted-but-visible variant for subtle actions that still need contrast */
+.btn-muted {
+  background-color: rgba(11, 35, 64, 0.04);
+  color: var(--foreground);
+  border: 1px solid rgba(11, 35, 64, 0.06);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+}
+
+.btn-outline:disabled, .btn-muted:disabled {
+  opacity: 0.85; /* keep slightly visible when disabled */
+  color: rgba(11,35,64,0.45);
+  border-color: rgba(11,35,64,0.06);
+  background-color: rgba(11,35,64,0.02);
+}
+
+/* Make form controls' text darker by default so placeholders and values are readable */
+/* Force input text to black on light mode for strong contrast; keep theme foreground in dark mode */
+input, textarea, select {
+  color: #000 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  input, textarea, select {
+    color: var(--foreground) !important;
+  }
+}
+
+/* Stronger placeholder color for readability */
+input::placeholder, textarea::placeholder {
+  color: rgba(11,35,64,0.55) !important;
+}
+
+/* Input borders slightly stronger for contrast */
+input, textarea, select {
+  border-color: rgba(11,35,64,0.12) !important;
+}
+
+/* Ensure outline buttons keep a readable text color and stronger border */
+.btn-outline, .btn-muted {
+  color: rgba(11,35,64,0.95) !important;
+  font-weight: 600;
+}
+
+/* Darker border and subtle hover/focus states for Clear/outline buttons */
+.btn-outline {
+  border-color: rgba(11,35,64,0.24) !important;
+  background-color: transparent;
+}
+.btn-outline:hover {
+  background-color: rgba(11,35,64,0.03);
+}
+.btn-outline:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(11,99,255,0.12);
+}
+
+/* Make bare .border buttons slightly darker so they stand out more on white */
+.border {
+  border-color: rgba(11,35,64,0.12) !important;
+}
+
+/* Ghost / grey CTA used on Home for secondary large actions */
+.btn-ghost, .btn-grey {
+  background-color: rgba(15,23,42,0.06);
+  color: var(--foreground);
+  border: 1px solid rgba(15,23,42,0.06);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+@media (prefers-color-scheme: dark) {
+  .btn-ghost, .btn-grey {
+    background-color: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.04);
+    color: var(--foreground);
+  }
+}
