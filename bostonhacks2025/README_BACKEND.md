@@ -1,3 +1,22 @@
+#
+## Local CSFLE Verification
+
+To verify CSFLE works end-to-end:
+
+1. Start the local encryption daemon:
+
+  ```bash
+  npm run mongocryptd &
+  ```
+
+2. In a new terminal, run the verifier script:
+
+  ```bash
+  export DOTENV_CONFIG_PATH=.env.local
+  npx tsx scripts/seedAndVerify.ts
+  ```
+
+You should see plaintext output from the app DAO, and BinData for encrypted fields when reading raw from the DB.
 ## Testing CSFLE with /api/seed
 
 To test that Client-Side Field Level Encryption (CSFLE) is working:

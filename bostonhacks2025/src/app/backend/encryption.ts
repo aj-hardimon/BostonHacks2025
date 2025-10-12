@@ -56,17 +56,65 @@ export async function getEncryptedMongoClient(dbName: string) {
     [`${dbName}.budgets`]: {
       bsonType: "object",
       properties: {
-        userId:        { encrypt: { keyId: [keyId], algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic" } },
-        monthlyIncome: { encrypt: { keyId: [keyId], algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random" } },
+        userId: {
+          encrypt: {
+            keyId: [keyId],
+            bsonType: "string",
+            algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic"
+          }
+        },
+        monthlyIncome: {
+          encrypt: {
+            keyId: [keyId],
+            bsonType: "double",
+            algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
+          }
+        },
         categories: {
           bsonType: "object",
           properties: {
-            rent:        { encrypt: { keyId: [keyId], algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random" } },
-            food:        { encrypt: { keyId: [keyId], algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random" } },
-            bills:       { encrypt: { keyId: [keyId], algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random" } },
-            savings:     { encrypt: { keyId: [keyId], algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random" } },
-            investments: { encrypt: { keyId: [keyId], algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random" } },
-            wants:       { encrypt: { keyId: [keyId], algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random" } },
+            rent: {
+              encrypt: {
+                keyId: [keyId],
+                bsonType: "double",
+                algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
+              }
+            },
+            food: {
+              encrypt: {
+                keyId: [keyId],
+                bsonType: "double",
+                algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
+              }
+            },
+            bills: {
+              encrypt: {
+                keyId: [keyId],
+                bsonType: "double",
+                algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
+              }
+            },
+            savings: {
+              encrypt: {
+                keyId: [keyId],
+                bsonType: "double",
+                algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
+              }
+            },
+            investments: {
+              encrypt: {
+                keyId: [keyId],
+                bsonType: "double",
+                algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
+              }
+            },
+            wants: {
+              encrypt: {
+                keyId: [keyId],
+                bsonType: "double",
+                algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
+              }
+            }
           }
         }
         // wantsSubcategories / timestamps left plaintext intentionally

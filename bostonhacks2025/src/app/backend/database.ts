@@ -2,7 +2,9 @@
  * MongoDB Database Connection and Schema
  */
 
-import { MongoClient, Db, Collection } from 'mongodb';
+import { MongoClient, Db, Collection, Double } from 'mongodb';
+const toDouble = (n: number) => new Double(Number(n));
+const fromDouble = (x: any) => x instanceof Double ? x.valueOf() : x;
 import { getEncryptedMongoClient } from './encryption';
 
 let client: MongoClient | null = null;
@@ -84,33 +86,36 @@ export async function getTransactionsCollection(): Promise<Collection<BudgetTran
  */
 export async function saveBudget(budget: Omit<UserBudget, '_id'>): Promise<UserBudget> {
   const collection = await getBudgetsCollection();
-  
+  const docForWrite = {
+    ...budget,
+    monthlyIncome: toDouble(budget.monthlyIncome),
+    categories: {
+      rent: toDouble(budget.categories.rent),
+      food: toDouble(budget.categories.food),
+      bills: toDouble(budget.categories.bills),
+      savings: toDouble(budget.categories.savings),
+      investments: toDouble(budget.categories.investments),
+      wants: toDouble(budget.categories.wants),
+    },
+    updatedAt: new Date(),
+  };
   const existingBudget = await collection.findOne({ userId: budget.userId });
-  
   if (existingBudget) {
-    // Update existing budget
     await collection.updateOne(
       { userId: budget.userId },
-      {
-        $set: {
-          ...budget,
-          updatedAt: new Date(),
-        },
-      }
+      { $set: docForWrite as any }
     );
-    return { ...budget, _id: existingBudget._id.toString(), updatedAt: new Date() };
+    return { ...budget, _id: existingBudget._id.toString(), updatedAt: docForWrite.updatedAt };
   } else {
-    // Create new budget
     const result = await collection.insertOne({
-      ...budget,
+      ...docForWrite,
       createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    } as any);
     return {
       ...budget,
       _id: result.insertedId.toString(),
       createdAt: new Date(),
-      updatedAt: new Date(),
+      updatedAt: docForWrite.updatedAt,
     };
   }
 }
@@ -120,7 +125,20 @@ export async function saveBudget(budget: Omit<UserBudget, '_id'>): Promise<UserB
  */
 export async function getBudget(userId: string): Promise<UserBudget | null> {
   const collection = await getBudgetsCollection();
-  return await collection.findOne({ userId });
+  const doc = await collection.findOne({ userId });
+  if (!doc) return null;
+  return {
+    ...doc,
+    monthlyIncome: fromDouble(doc.monthlyIncome),
+    categories: {
+      rent: fromDouble(doc.categories?.rent),
+      food: fromDouble(doc.categories?.food),
+      bills: fromDouble(doc.categories?.bills),
+      savings: fromDouble(doc.categories?.savings),
+      investments: fromDouble(doc.categories?.investments),
+      wants: fromDouble(doc.categories?.wants),
+    },
+  };
 }
 
 /**
