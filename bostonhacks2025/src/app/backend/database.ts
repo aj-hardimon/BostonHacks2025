@@ -250,6 +250,15 @@ export async function getTransactions(
 }
 
 /**
+ * Delete a transaction
+ */
+export async function deleteTransaction(transactionId: string): Promise<boolean> {
+  const collection = await getTransactionsCollection();
+  const result = await collection.deleteOne({ _id: transactionId as any });
+  return result.deletedCount > 0;
+}
+
+/**
  * Close database connection
  */
 export async function closeDatabaseConnection(): Promise<void> {

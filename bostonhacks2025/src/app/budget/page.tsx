@@ -191,13 +191,19 @@ export default function BudgetHome() {
                 >
                   Edit Budget
                 </button>
-                <button className="px-4 py-3 border border-slate-300 rounded-md hover:bg-slate-50 font-medium">
+                <button 
+                  onClick={() => router.push('/transactions')}
+                  className="px-4 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium"
+                >
                   View Transactions
                 </button>
                 <button className="px-4 py-3 border border-slate-300 rounded-md hover:bg-slate-50 font-medium">
                   Weekly Progress
                 </button>
-                <button className="px-4 py-3 border border-slate-300 rounded-md hover:bg-slate-50 font-medium">
+                <button 
+                  onClick={() => router.push('/transactions')}
+                  className="px-4 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-medium"
+                >
                   Add Transaction
                 </button>
               </div>
