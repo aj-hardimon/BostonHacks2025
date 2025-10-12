@@ -46,10 +46,12 @@ export async function POST(request: NextRequest) {
 
     if (!sampleTransactions || sampleTransactions.length === 0) {
       return NextResponse.json(
-        { error: 'No sample transactions could be generated from Nessie API' },
+        { error: 'Failed to generate sample transactions. Please try again or add transactions manually.' },
         { status: 500 }
       );
     }
+
+    console.log(`Generated ${sampleTransactions.length} sample transactions (may include example data if Nessie API is unavailable)`);
 
     // Save transactions to database
     const savedTransactions = await saveTransactionsBulk(
@@ -69,6 +71,7 @@ export async function POST(request: NextRequest) {
       message: `Generated ${savedTransactions.length} sample transactions`,
       count: savedTransactions.length,
       transactions: savedTransactions,
+      note: 'Transactions may include example data if Nessie API is unavailable or has no data'
     });
   } catch (error) {
     console.error('Generate sample transactions error:', error);

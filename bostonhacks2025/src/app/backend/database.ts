@@ -15,16 +15,18 @@ export interface UserBudget {
   userId: string;
   monthlyIncome: number;
   categories: {
-    rent: number;
-    food: number;
-    bills: number;
-    savings: number;
-    investments: number;
-    wants: number;
+    rent?: { total: number; percentage: number } | number;
+    food?: { total: number; percentage: number } | number;
+    bills?: { total: number; percentage: number } | number;
+    savings?: { total: number; percentage: number } | number;
+    investments?: { total: number; percentage: number } | number;
+    wants?: { total: number; percentage: number } | number;
   };
   wantsSubcategories?: {
-    name: string;
-    percentage: number;
+    name?: string;
+    subcategory?: string;
+    amount?: number;
+    percentage?: number;
   }[];
   createdAt: Date;
   updatedAt: Date;
@@ -91,19 +93,21 @@ export async function getTransactionsCollection(): Promise<Collection<BudgetTran
  */
 export async function saveBudget(budget: Omit<UserBudget, '_id'>): Promise<UserBudget> {
   const collection = await getBudgetsCollection();
+  
+  // Helper function to convert category value to number for storage
+  const convertCategoryValue = (value: number | { total: number; percentage: number } | undefined): number => {
+    if (value === undefined || value === null) return 0;
+    if (typeof value === 'number') return value;
+    return value.total || 0;
+  };
+  
   const docForWrite = {
     ...budget,
     monthlyIncome: toDouble(budget.monthlyIncome),
-    categories: {
-      rent: toDouble(budget.categories.rent),
-      food: toDouble(budget.categories.food),
-      bills: toDouble(budget.categories.bills),
-      savings: toDouble(budget.categories.savings),
-      investments: toDouble(budget.categories.investments),
-      wants: toDouble(budget.categories.wants),
-    },
+    categories: budget.categories, // Store as-is (can be objects or numbers)
     updatedAt: new Date(),
   };
+  
   const existingBudget = await collection.findOne({ userId: budget.userId });
   if (existingBudget) {
     await collection.updateOne(

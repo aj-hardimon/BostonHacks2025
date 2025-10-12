@@ -173,14 +173,16 @@ export async function generateSampleTransactions(
 ): Promise<FormattedTransaction[]> {
   try {
     if (!NESSIE_API_KEY) {
-      throw new Error('NESSIE_API_KEY is not configured');
+      console.warn('NESSIE_API_KEY is not configured, using example transactions');
+      return generateExampleTransactions(limit);
     }
 
     console.log('Fetching customers from Nessie API...');
     const customers = await getCustomers();
     
     if (!customers || customers.length === 0) {
-      throw new Error('No customers found in Nessie API');
+      console.warn('No customers found in Nessie API, using example transactions');
+      return generateExampleTransactions(limit);
     }
 
     console.log(`Found ${customers.length} customers`);
@@ -193,7 +195,8 @@ export async function generateSampleTransactions(
     const purchases = await getCustomerPurchases(randomCustomer._id);
     
     if (!purchases || purchases.length === 0) {
-      throw new Error('No purchases found for customer');
+      console.warn('No purchases found for customer, using example transactions');
+      return generateExampleTransactions(limit);
     }
 
     console.log(`Found ${purchases.length} purchases`);
@@ -236,12 +239,94 @@ export async function generateSampleTransactions(
       }
     }
 
-    console.log(`Successfully formatted ${transactions.length} transactions`);
+    console.log(`Successfully formatted ${transactions.length} transactions from Nessie API`);
+    
+    // If no transactions were formatted, use examples
+    if (transactions.length === 0) {
+      console.warn('No transactions could be formatted from Nessie API, using example transactions');
+      return generateExampleTransactions(limit);
+    }
+    
     return transactions;
   } catch (error) {
-    console.error('Error generating sample transactions:', error);
-    throw error;
+    console.error('Error generating sample transactions from Nessie API:', error);
+    console.warn('Falling back to example transactions');
+    return generateExampleTransactions(limit);
   }
+}
+
+/**
+ * Generate realistic example transactions (fallback when Nessie API has no data)
+ */
+export function generateExampleTransactions(limit: number = 20): FormattedTransaction[] {
+  const exampleMerchants = [
+    // Food
+    { name: 'Whole Foods', category: 'food', description: 'Grocery shopping', minAmount: 40, maxAmount: 150 },
+    { name: 'Trader Joe\'s', category: 'food', description: 'Groceries', minAmount: 30, maxAmount: 120 },
+    { name: 'Starbucks', category: 'food', description: 'Coffee and snacks', minAmount: 5, maxAmount: 15 },
+    { name: 'Chipotle', category: 'food', description: 'Lunch', minAmount: 10, maxAmount: 20 },
+    { name: 'McDonald\'s', category: 'food', description: 'Fast food', minAmount: 7, maxAmount: 15 },
+    { name: 'Subway', category: 'food', description: 'Sandwich', minAmount: 8, maxAmount: 12 },
+    { name: 'Target', category: 'food', description: 'Groceries and household items', minAmount: 50, maxAmount: 200 },
+    { name: 'Safeway', category: 'food', description: 'Weekly groceries', minAmount: 60, maxAmount: 180 },
+    { name: 'Panera Bread', category: 'food', description: 'Lunch', minAmount: 10, maxAmount: 18 },
+    { name: 'Dunkin\' Donuts', category: 'food', description: 'Coffee and breakfast', minAmount: 5, maxAmount: 12 },
+    
+    // Bills
+    { name: 'Comcast', category: 'bills', description: 'Internet service', minAmount: 60, maxAmount: 120 },
+    { name: 'Verizon', category: 'bills', description: 'Phone bill', minAmount: 70, maxAmount: 150 },
+    { name: 'Pacific Gas & Electric', category: 'bills', description: 'Utilities - Electric', minAmount: 80, maxAmount: 200 },
+    { name: 'Water Company', category: 'bills', description: 'Utilities - Water', minAmount: 40, maxAmount: 80 },
+    { name: 'State Farm', category: 'bills', description: 'Insurance payment', minAmount: 100, maxAmount: 300 },
+    { name: 'AT&T', category: 'bills', description: 'Phone and internet', minAmount: 80, maxAmount: 150 },
+    
+    // Wants
+    { name: 'Amazon', category: 'wants', description: 'Online shopping', minAmount: 15, maxAmount: 200 },
+    { name: 'Netflix', category: 'wants', description: 'Streaming subscription', minAmount: 15, maxAmount: 20 },
+    { name: 'Spotify', category: 'wants', description: 'Music subscription', minAmount: 10, maxAmount: 15 },
+    { name: 'AMC Theatres', category: 'wants', description: 'Movie tickets', minAmount: 12, maxAmount: 40 },
+    { name: 'Barnes & Noble', category: 'wants', description: 'Books', minAmount: 15, maxAmount: 60 },
+    { name: 'Best Buy', category: 'wants', description: 'Electronics', minAmount: 30, maxAmount: 500 },
+    { name: 'Nike', category: 'wants', description: 'Athletic wear', minAmount: 50, maxAmount: 200 },
+    { name: 'Target', category: 'wants', description: 'Shopping', minAmount: 25, maxAmount: 150 },
+    { name: 'Steam', category: 'wants', description: 'Video games', minAmount: 10, maxAmount: 60 },
+    { name: 'Apple Store', category: 'wants', description: 'Tech purchase', minAmount: 50, maxAmount: 1000 },
+    { name: 'H&M', category: 'wants', description: 'Clothing', minAmount: 30, maxAmount: 120 },
+    { name: 'Zara', category: 'wants', description: 'Clothing', minAmount: 40, maxAmount: 150 },
+    { name: 'GameStop', category: 'wants', description: 'Video games', minAmount: 20, maxAmount: 70 },
+    { name: 'Hulu', category: 'wants', description: 'Streaming subscription', minAmount: 12, maxAmount: 18 },
+    
+    // Rent
+    { name: 'Property Management Co.', category: 'rent', description: 'Monthly rent', minAmount: 1000, maxAmount: 2500 },
+    { name: 'Landlord Payment', category: 'rent', description: 'Rent payment', minAmount: 1200, maxAmount: 3000 },
+  ];
+
+  const transactions: FormattedTransaction[] = [];
+  const now = new Date();
+
+  for (let i = 0; i < limit; i++) {
+    // Pick a random merchant
+    const merchant = exampleMerchants[Math.floor(Math.random() * exampleMerchants.length)];
+    
+    // Generate random amount within merchant's range
+    const amount = Number((Math.random() * (merchant.maxAmount - merchant.minAmount) + merchant.minAmount).toFixed(2));
+    
+    // Generate random date within last 30 days
+    const daysAgo = Math.floor(Math.random() * 30);
+    const date = new Date(now);
+    date.setDate(date.getDate() - daysAgo);
+    
+    transactions.push({
+      merchantName: merchant.name,
+      date: date,
+      amount: amount,
+      category: merchant.category,
+      description: merchant.description,
+    });
+  }
+
+  // Sort by date (most recent first)
+  return transactions.sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
 /**
@@ -252,14 +337,16 @@ export async function generateSampleTransactionsFromAllCustomers(
 ): Promise<FormattedTransaction[]> {
   try {
     if (!NESSIE_API_KEY) {
-      throw new Error('NESSIE_API_KEY is not configured');
+      console.warn('NESSIE_API_KEY is not configured, using example transactions');
+      return generateExampleTransactions(limit);
     }
 
     console.log('Fetching customers from Nessie API...');
     const customers = await getCustomers();
     
     if (!customers || customers.length === 0) {
-      throw new Error('No customers found in Nessie API');
+      console.warn('No customers found in Nessie API, using example transactions');
+      return generateExampleTransactions(limit);
     }
 
     console.log(`Found ${customers.length} customers, fetching purchases...`);
@@ -304,13 +391,20 @@ export async function generateSampleTransactionsFromAllCustomers(
       }
     }
 
-    console.log(`Collected ${allTransactions.length} total transactions`);
+    console.log(`Collected ${allTransactions.length} total transactions from Nessie API`);
+
+    // If no transactions found from Nessie, use examples
+    if (allTransactions.length === 0) {
+      console.warn('No transactions found from Nessie API, using example transactions');
+      return generateExampleTransactions(limit);
+    }
 
     // Shuffle and limit
     const shuffled = allTransactions.sort(() => Math.random() - 0.5);
     return shuffled.slice(0, limit);
   } catch (error) {
-    console.error('Error generating sample transactions:', error);
-    throw error;
+    console.error('Error generating sample transactions from Nessie API:', error);
+    console.warn('Falling back to example transactions');
+    return generateExampleTransactions(limit);
   }
 }
