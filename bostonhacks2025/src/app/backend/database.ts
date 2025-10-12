@@ -13,6 +13,7 @@ let db: Db | null = null;
 export interface UserBudget {
   _id?: string;
   userId: string;
+  name?: string;
   monthlyIncome: number;
   categories: {
     rent?: { total: number; percentage: number } | number;
@@ -60,6 +61,7 @@ export async function connectToDatabase(): Promise<Db> {
     
     // Ensure indexes
     await db.collection('budgets').createIndex({ userId: 1 });
+    await db.collection('budgets').createIndex({ name: 1 });
     await db.collection('transactions').createIndex({ userId: 1 });
     await db.collection('transactions').createIndex({ userId: 1, date: -1 });
     await db.collection('transactions').createIndex({ budgetId: 1 });
@@ -135,6 +137,27 @@ export async function saveBudget(budget: Omit<UserBudget, '_id'>): Promise<UserB
 export async function getBudget(userId: string): Promise<UserBudget | null> {
   const collection = await getBudgetsCollection();
   const doc = await collection.findOne({ userId });
+  if (!doc) return null;
+  return {
+    ...doc,
+    monthlyIncome: fromDouble(doc.monthlyIncome),
+    categories: {
+      rent: fromDouble(doc.categories?.rent),
+      food: fromDouble(doc.categories?.food),
+      bills: fromDouble(doc.categories?.bills),
+      savings: fromDouble(doc.categories?.savings),
+      investments: fromDouble(doc.categories?.investments),
+      wants: fromDouble(doc.categories?.wants),
+    },
+  };
+}
+
+/**
+ * Get a budget by name
+ */
+export async function getBudgetByName(name: string): Promise<UserBudget | null> {
+  const collection = await getBudgetsCollection();
+  const doc = await collection.findOne({ name });
   if (!doc) return null;
   return {
     ...doc,

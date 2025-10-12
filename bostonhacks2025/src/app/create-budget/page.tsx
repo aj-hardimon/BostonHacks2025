@@ -159,15 +159,27 @@ export default function CreateBudgetWizard() {
 
   async function handleCreate() {
     setError(null);
+    
+    if (!name.trim()) {
+      setError("Please provide a budget name");
+      return;
+    }
+    
     setLoading(true);
     try {
-      await createBudget({
+      const result = await createBudget({
         monthlyIncome: Number(monthlyIncome),
         categories,
         wantsSubcategories: wantsSub,
         name,
         userId: "demo-user",
       });
+      
+      // Store the newly created budget in sessionStorage
+      if (result && result.budget) {
+        sessionStorage.setItem('currentBudget', JSON.stringify(result.budget));
+      }
+      
       router.push("/budget");
     } catch (e) {
       setError("Failed to save budget");
@@ -211,8 +223,14 @@ export default function CreateBudgetWizard() {
 
         {step === "income" && (
           <div>
-            <label className="block text-sm font-medium text-slate-800">Name (optional)</label>
-            <input className="mt-1 block w-full border rounded px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-sky-500" value={name} onChange={(e) => setName(e.target.value)} />
+            <label className="block text-sm font-medium text-slate-800">Budget Name *</label>
+            <input 
+              className="mt-1 block w-full border rounded px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-sky-500" 
+              value={name} 
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g., My 2025 Budget, College Budget, etc."
+              required
+            />
 
             <label className="block text-sm font-medium text-slate-800 mt-4">Monthly income</label>
             <input
