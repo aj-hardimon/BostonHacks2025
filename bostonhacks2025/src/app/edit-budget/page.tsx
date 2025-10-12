@@ -332,8 +332,8 @@ export default function EditBudgetPage() {
           {/* Wants Step */}
           {step === "wants" && (
             <div>
-              <h2 className="text-lg font-medium mb-4">Wants Subcategories</h2>
-              <p className="text-sm text-slate-600 mb-4">
+              <h2 className="text-lg font-medium mb-4 text-slate-900">Wants Subcategories</h2>
+              <p className="text-sm text-slate-900 mb-4">
                 Break down your "wants" budget (${amounts.wants.toFixed(2)}) into subcategories
               </p>
 
@@ -342,7 +342,7 @@ export default function EditBudgetPage() {
                 return (
                   <div key={idx} className="mb-4 p-3 border rounded">
                     <input
-                      className="block w-full border rounded px-3 py-2 mb-2"
+                      className="block w-full border rounded px-3 py-2 mb-2 text-slate-900"
                       placeholder="Subcategory name"
                       value={sub.name}
                       onChange={(e) => {
@@ -399,8 +399,8 @@ export default function EditBudgetPage() {
           {/* Review Step */}
           {step === "review" && (
             <div>
-              <h2 className="text-lg font-medium mb-4">Review Your Changes</h2>
-              <div className="space-y-2 text-sm">
+              <h2 className="text-lg font-medium mb-4 text-slate-900">Review Your Changes</h2>
+              <div className="space-y-2 text-sm text-slate-900">
                 <p><strong>Username:</strong> {username}</p>
                 <p><strong>Budget Name:</strong> {name}</p>
                 <p><strong>Monthly Income:</strong> ${Number(monthlyIncome).toLocaleString()}</p>
@@ -436,10 +436,14 @@ export default function EditBudgetPage() {
               onClick={() => {
                 const steps: Step[] = ["income", "categories", "wants", "review"];
                 const idx = steps.indexOf(step);
-                if (idx > 0) setStep(steps[idx - 1]);
+                if (idx > 0) {
+                  setStep(steps[idx - 1]);
+                } else {
+                  // If on first step, go back to budget page
+                  router.push("/budget");
+                }
               }}
-              disabled={step === "income"}
-              className="px-4 py-2 border rounded disabled:opacity-50"
+              className="px-4 py-2 border rounded hover:bg-slate-100"
             >
               Back
             </button>
