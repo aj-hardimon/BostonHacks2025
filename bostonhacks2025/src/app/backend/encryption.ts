@@ -6,10 +6,18 @@ const dataKeyAltName = "pii-key";                  // readable alias for your DE
 
 // Build a CSFLE-enabled client for your app DB
 export async function getEncryptedMongoClient(dbName: string) {
-  const uri = process.env.MONGODB_URI!;
-  const localMasterKeyB64 = process.env.CSFLE_LOCAL_MASTER_KEY!;
-  if (!uri || !localMasterKeyB64) {
-    throw new Error("MONGODB_URI or CSFLE_LOCAL_MASTER_KEY missing");
+  const uri = process.env.MONGODB_URI;
+  const localMasterKeyB64 = process.env.CSFLE_LOCAL_MASTER_KEY;
+
+  if (!uri) {
+    throw new Error("MONGODB_URI is required to connect to the database");
+  }
+
+  // If the CSFLE key isn't provided, return a plain client for local/dev use
+  if (!localMasterKeyB64) {
+    const client = new MongoClient(uri);
+    await client.connect();
+    return client;
   }
 
   // 1) Base client (no autoEncryption) to manage keys

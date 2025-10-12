@@ -99,6 +99,20 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
           const saved = await saveRes.json();
           const reconciled: Budget = { ...b, id: saved._id || saved.id };
           setBudgets((s) => [reconciled, ...s.filter((x) => x !== b)]);
+
+          // fire-and-forget notify POST so other services can react to the new budget
+          (async () => {
+            try {
+              await fetch('/api/budget/notify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId }),
+              });
+            } catch (err) {
+              // ignore notify failures
+            }
+          })();
+
           return { budget: reconciled, savedToBackend: true };
         }
       } catch (e) {
