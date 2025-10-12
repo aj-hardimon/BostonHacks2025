@@ -40,6 +40,7 @@ export default function CreateBudgetWizard() {
   const [step, setStep] = useState<Step>("income");
   const [monthlyIncome, setMonthlyIncome] = useState<number | "">("");
   const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [categories, setCategories] = useState<Categories>({
     rent: 30,
     food: 15,
@@ -64,6 +65,14 @@ export default function CreateBudgetWizard() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [calc, setCalc] = useState<CalcResult | null>(null);
+
+  // Load stored username on mount
+  useEffect(() => {
+    const storedUsername = sessionStorage.getItem('currentUsername');
+    if (storedUsername) {
+      setUsername(storedUsername);
+    }
+  }, []);
 
   function updateCategory(key: keyof Categories, value: number) {
     setCategories((c) => ({ ...c, [key]: value }));
@@ -160,6 +169,11 @@ export default function CreateBudgetWizard() {
   async function handleCreate() {
     setError(null);
     
+    if (!username.trim()) {
+      setError("Please provide a username");
+      return;
+    }
+    
     if (!name.trim()) {
       setError("Please provide a budget name");
       return;
@@ -172,13 +186,16 @@ export default function CreateBudgetWizard() {
         categories,
         wantsSubcategories: wantsSub,
         name,
-        userId: "demo-user",
+        userId: username.trim(),
       });
       
       // Store the newly created budget in sessionStorage
       if (result && result.budget) {
         sessionStorage.setItem('currentBudget', JSON.stringify(result.budget));
       }
+      
+      // Store username for future use
+      sessionStorage.setItem('currentUsername', username.trim());
       
       router.push("/budget");
     } catch (e) {
@@ -223,7 +240,16 @@ export default function CreateBudgetWizard() {
 
         {step === "income" && (
           <div>
-            <label className="block text-sm font-medium text-slate-800">Budget Name *</label>
+            <label className="block text-sm font-medium text-slate-800">Your Username *</label>
+            <input 
+              className="mt-1 block w-full border rounded px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-sky-500" 
+              value={username} 
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="e.g., john_doe, sarah123, etc."
+              required
+            />
+
+            <label className="block text-sm font-medium text-slate-800 mt-4">Budget Name *</label>
             <input 
               className="mt-1 block w-full border rounded px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-sky-500" 
               value={name} 
