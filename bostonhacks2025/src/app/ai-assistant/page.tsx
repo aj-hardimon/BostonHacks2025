@@ -39,7 +39,7 @@ function budgetToBudgetResult(budget: Budget) {
 
 export default function AIAssistantPage() {
   const { getLatest } = useBudget();
-  const budget = getLatest();
+  const [budget, setBudget] = useState<Budget | undefined>();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -47,17 +47,49 @@ export default function AIAssistantPage() {
   const [userGoals, setUserGoals] = useState('');
   const [userPreferences, setUserPreferences] = useState('');
 
+  // Load budget from context or sessionStorage
+  useEffect(() => {
+    const loadBudget = () => {
+      // Try to get from context first
+      let currentBudget = getLatest();
+      
+      // If not in context, try sessionStorage
+      if (!currentBudget) {
+        try {
+          const stored = sessionStorage.getItem('currentBudget');
+          if (stored) {
+            currentBudget = JSON.parse(stored);
+          }
+        } catch (error) {
+          console.error('Error loading budget from sessionStorage:', error);
+        }
+      }
+      
+      setBudget(currentBudget);
+    };
+
+    loadBudget();
+    
+    // Re-check when window gains focus (user might have created budget in another tab)
+    window.addEventListener('focus', loadBudget);
+    return () => window.removeEventListener('focus', loadBudget);
+  }, [getLatest]);
+
   useEffect(() => {
     // Welcome message
+    const welcomeMsg = budget 
+      ? '🤖 Welcome to your AI Budget Assistant! I can see you have a budget loaded. Choose a mode below to get started with personalized advice.'
+      : '🤖 Welcome to your AI Budget Assistant! Create a budget first to get personalized advice, or ask general budgeting questions in Chat mode.';
+    
     setMessages([
       {
         id: 1,
         type: 'system',
-        content: '🤖 Welcome to your AI Budget Assistant! I can help you with budget analysis, recommendations, and subcategory suggestions. Choose a mode below to get started.',
+        content: welcomeMsg,
         timestamp: new Date(),
       },
     ]);
-  }, []);
+  }, [budget]);
 
   const addMessage = (type: 'user' | 'ai' | 'system', content: string) => {
     const newMessage: Message = {
@@ -71,7 +103,7 @@ export default function AIAssistantPage() {
 
   const handleAnalyzeBudget = async () => {
     if (!budget) {
-      addMessage('system', '❌ No budget found. Please create a budget first.');
+      addMessage('system', '❌ No budget found. Please go to the Budget page or Create Budget page to set up your budget first, then come back here.');
       return;
     }
 
@@ -103,7 +135,7 @@ export default function AIAssistantPage() {
 
   const handleGetRecommendations = async () => {
     if (!budget) {
-      addMessage('system', '❌ No budget found. Please create a budget first.');
+      addMessage('system', '❌ No budget found. Please go to the Budget page or Create Budget page to set up your budget first, then come back here.');
       return;
     }
 
@@ -145,7 +177,7 @@ export default function AIAssistantPage() {
 
   const handleGetWantsSubcategories = async () => {
     if (!budget) {
-      addMessage('system', '❌ No budget found. Please create a budget first.');
+      addMessage('system', '❌ No budget found. Please go to the Budget page or Create Budget page to set up your budget first, then come back here.');
       return;
     }
 
@@ -228,13 +260,23 @@ export default function AIAssistantPage() {
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <div>
+            <div className="flex-1">
               <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
                 🤖 AI Budget Assistant
               </h1>
               <p className="text-slate-600 mt-2">
                 Get personalized budget advice powered by Gemini AI
               </p>
+              {budget && (
+                <p className="text-sm text-green-600 mt-1 flex items-center gap-2">
+                  ✓ Budget loaded: {budget.name || 'Unnamed Budget'} (${budget.monthlyIncome.toLocaleString()}/month)
+                </p>
+              )}
+              {!budget && (
+                <p className="text-sm text-amber-600 mt-1 flex items-center gap-2">
+                  ⚠️ No budget loaded - Create one first for personalized advice
+                </p>
+              )}
             </div>
             <Link
               href="/budget"
