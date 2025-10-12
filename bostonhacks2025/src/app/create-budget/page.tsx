@@ -15,6 +15,15 @@ type Categories = {
   wants: number;
 };
 
+type CategoryAmounts = {
+  rent: number;
+  food: number;
+  bills: number;
+  savings: number;
+  investments: number;
+  wants: number;
+};
+
 type CalcResult = {
   monthlyIncome: number;
   totalAllocated: number;
@@ -40,6 +49,17 @@ export default function CreateBudgetWizard() {
     wants: 20,
   });
 
+  // Keep a parallel state for dollar amounts for each main category. These
+  // are kept in sync with percentages when possible.
+  const [amounts, setAmounts] = useState<CategoryAmounts>({
+    rent: 0,
+    food: 0,
+    bills: 0,
+    savings: 0,
+    investments: 0,
+    wants: 0,
+  });
+
   const [wantsSub, setWantsSub] = useState<Array<{ name: string; percentage: number }>>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -47,6 +67,24 @@ export default function CreateBudgetWizard() {
 
   function updateCategory(key: keyof Categories, value: number) {
     setCategories((c) => ({ ...c, [key]: value }));
+  }
+
+  function updateCategoryPercent(key: keyof Categories, percent: number) {
+    // update percent, and compute dollar amount if income is present
+    setCategories((c) => ({ ...c, [key]: percent }));
+    setAmounts((a) => ({
+      ...a,
+      [key]: monthlyIncome && Number(monthlyIncome) > 0 ? Number(((percent / 100) * Number(monthlyIncome)).toFixed(2)) : a[key],
+    }));
+  }
+
+  function updateCategoryAmount(key: keyof CategoryAmounts, amount: number) {
+    setAmounts((a) => ({ ...a, [key]: amount }));
+    // update percentage if income exists
+    if (monthlyIncome && Number(monthlyIncome) > 0) {
+      const pct = (Number(amount) / Number(monthlyIncome)) * 100;
+      setCategories((c) => ({ ...c, [key]: Number(pct.toFixed(2)) }));
+    }
   }
 
   function addWantsSub() {
@@ -105,7 +143,7 @@ export default function CreateBudgetWizard() {
         name,
         userId: "demo-user",
       });
-      router.push("/");
+      router.push("/budget");
     } catch (e) {
       setError("Failed to save budget");
     } finally {
@@ -117,7 +155,7 @@ export default function CreateBudgetWizard() {
 
   return (
     <div className="min-h-screen flex items-start justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
-      <div className="max-w-3xl w-full bg-white shadow-md rounded-lg p-8">
+  <div className="w-11/12 md:w-3/4 lg:w-2/3 bg-white shadow-md rounded-lg p-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-semibold text-slate-800">Create your budget</h1>
           <div className="text-sm text-slate-600">Step: {step}</div>
@@ -142,7 +180,25 @@ export default function CreateBudgetWizard() {
             <input className="mt-1 block w-full border rounded px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-sky-500" value={name} onChange={(e) => setName(e.target.value)} />
 
             <label className="block text-sm font-medium text-slate-800 mt-4">Monthly income</label>
-            <input className="mt-1 block w-full border rounded px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-sky-500" type="number" value={monthlyIncome} onChange={(e) => setMonthlyIncome(e.target.value === "" ? "" : Number(e.target.value))} />
+            <input
+              className="mt-1 block w-full border rounded px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-sky-500"
+              type="number"
+              value={monthlyIncome}
+              onChange={(e) => {
+                const val = e.target.value === "" ? "" : Number(e.target.value);
+                setMonthlyIncome(val);
+                // if we have a numeric income, recalc amounts from current percentages
+                if (val !== "" && Number(val) > 0) {
+                  setAmounts((a) => {
+                    const next: any = { ...a };
+                    (Object.keys(categories) as (keyof Categories)[]).forEach((k) => {
+                      next[k] = Number(((categories as any)[k] / 100) * Number(val));
+                    });
+                    return next as CategoryAmounts;
+                  });
+                }
+              }}
+            />
 
             <div className="mt-6 flex justify-end gap-2">
               <button className="px-4 py-2 rounded border text-slate-800" onClick={() => setStep("categories")}>Next</button>
@@ -156,9 +212,24 @@ export default function CreateBudgetWizard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {(["rent", "food", "bills", "savings", "investments", "wants"] as (keyof Categories)[]).map((k) => (
                 <div key={k} className="flex items-center gap-3">
-                  <label className="capitalize w-28 text-sm text-slate-800">{k}</label>
-                  <input className="flex-1 border rounded px-2 py-1 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-sky-500" type="number" value={(categories as any)[k]} onChange={(e) => updateCategory(k, Number(e.target.value))} />
-                  <span className="w-16 text-right text-sm text-slate-700">%</span>
+                  <label className="capitalize w-1/4 text-sm text-slate-800">{k}</label>
+                    {/* percent input */}
+                    <input
+                      className="w-1/6 border rounded px-2 py-1 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-sky-500"
+                    type="number"
+                    value={(categories as any)[k]}
+                    onChange={(e) => updateCategoryPercent(k, Number(e.target.value))}
+                  />
+                    <span className="text-sm text-slate-700">%</span>
+
+                    {/* dollar input */}
+                    <input
+                      className="mx-4 w-1/3 border rounded px-2 py-1 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-sky-500"
+                    type="number"
+                    value={(amounts as any)[k]}
+                    onChange={(e) => updateCategoryAmount(k, Number(e.target.value))}
+                  />
+                    <span className="text-sm text-slate-700">$</span>
                 </div>
               ))}
             </div>
@@ -226,7 +297,7 @@ export default function CreateBudgetWizard() {
                     <div key={k} className="grid grid-cols-3 gap-2 text-sm text-slate-700">
                       <div className="truncate">{k}</div>
                       <div className="text-right">{v}%</div>
-                      <div className="text-right">-</div>
+                      <div className="text-right">${((amounts as any)[k] ?? 0).toFixed(2)}</div>
                     </div>
                   ))
                 )}
